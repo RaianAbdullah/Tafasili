@@ -41,6 +41,7 @@ const gymWorkoutDays = [
 ];
 
 const lapActivities = ['Run', 'Walking', 'Cycling', 'Swimming'];
+const matchActivities = ['Padel', 'Tennis'];
 
 type GymSet = {
   id: number;
@@ -51,6 +52,12 @@ type GymExercise = {
   id: number;
   name: string;
   sets: GymSet[];
+};
+
+type MatchRound = {
+  id: number;
+  teamOneGames: string;
+  teamTwoGames: string;
 };
 
 type SessionDetails = {
@@ -66,6 +73,12 @@ type SessionDetails = {
   lapDistance?: string;
   lapDistanceUnit?: string;
   totalDistance?: string;
+
+  matchTeamOneName?: string;
+  matchTeamTwoName?: string;
+  matchRounds?: MatchRound[];
+  matchTeamOneTotal?: number;
+  matchTeamTwoTotal?: number;
 };
 
 type Session = {
@@ -105,6 +118,12 @@ export default function HomeScreen() {
   const [lapCount, setLapCount] = useState(0);
   const [lapDistance, setLapDistance] = useState('');
   const [lapDistanceUnit, setLapDistanceUnit] = useState('m');
+
+  const [matchTeamOneName, setMatchTeamOneName] = useState('');
+  const [matchTeamTwoName, setMatchTeamTwoName] = useState('');
+  const [matchTeamOneGames, setMatchTeamOneGames] = useState('');
+  const [matchTeamTwoGames, setMatchTeamTwoGames] = useState('');
+  const [matchRounds, setMatchRounds] = useState<MatchRound[]>([]);
 
   useEffect(() => {
     loadSavedData();
@@ -151,6 +170,14 @@ export default function HomeScreen() {
     return lapActivities.includes(activity);
   };
 
+  const isMatchActivity = (activity: string | null) => {
+    if (!activity) {
+      return false;
+    }
+
+    return matchActivities.includes(activity);
+  };
+
   const getDefaultLapDistance = (activity: string) => {
     if (activity === 'Cycling') {
       return {
@@ -187,6 +214,12 @@ export default function HomeScreen() {
     setLapCount(0);
     setLapDistance('');
     setLapDistanceUnit('m');
+
+    setMatchTeamOneName('');
+    setMatchTeamTwoName('');
+    setMatchTeamOneGames('');
+    setMatchTeamTwoGames('');
+    setMatchRounds([]);
   };
 
   const openActivity = (activity: string) => {
@@ -410,6 +443,61 @@ export default function HomeScreen() {
     setGymExercises(newExercises);
   };
 
+  const addMatchRound = () => {
+    const cleanTeamOneGames = matchTeamOneGames.trim();
+    const cleanTeamTwoGames = matchTeamTwoGames.trim();
+
+    if (cleanTeamOneGames === '') {
+      alert('Please enter Team 1 games');
+      return;
+    }
+
+    if (cleanTeamTwoGames === '') {
+      alert('Please enter Team 2 games');
+      return;
+    }
+
+    const teamOneNumber = Number(cleanTeamOneGames);
+    const teamTwoNumber = Number(cleanTeamTwoGames);
+
+    if (Number.isNaN(teamOneNumber) || Number.isNaN(teamTwoNumber)) {
+      alert('Games must be numbers');
+      return;
+    }
+
+    if (teamOneNumber > 6 || teamTwoNumber > 6) {
+      alert('Each round should be 6 games or less');
+      return;
+    }
+
+    const newRound: MatchRound = {
+      id: Date.now(),
+      teamOneGames: cleanTeamOneGames,
+      teamTwoGames: cleanTeamTwoGames,
+    };
+
+    setMatchRounds([...matchRounds, newRound]);
+    setMatchTeamOneGames('');
+    setMatchTeamTwoGames('');
+  };
+
+  const deleteMatchRound = (roundId: number) => {
+    const newRounds = matchRounds.filter((round) => round.id !== roundId);
+    setMatchRounds(newRounds);
+  };
+
+  const getMatchTeamOneTotal = () => {
+    return matchRounds.reduce((total, round) => {
+      return total + Number(round.teamOneGames || 0);
+    }, 0);
+  };
+
+  const getMatchTeamTwoTotal = () => {
+    return matchRounds.reduce((total, round) => {
+      return total + Number(round.teamTwoGames || 0);
+    }, 0);
+  };
+
   const saveSession = () => {
     if (!selectedActivity || !startTime || !endTime) {
       alert('Please start and end the activity first');
@@ -426,6 +514,18 @@ export default function HomeScreen() {
       return;
     }
 
+    if (isMatchActivity(selectedActivity)) {
+      if (matchTeamOneName.trim() === '') {
+        alert('Please enter Team 1 name');
+        return;
+      }
+
+      if (matchTeamTwoName.trim() === '') {
+        alert('Please enter Team 2 name');
+        return;
+      }
+    }
+
     let finalGymExercises = gymExercises;
 
     if (selectedActivity === 'Gym') {
@@ -439,6 +539,23 @@ export default function HomeScreen() {
         };
 
         finalGymExercises = [...gymExercises, unfinishedExercise];
+      }
+    }
+
+    let finalMatchRounds = matchRounds;
+
+    if (isMatchActivity(selectedActivity)) {
+      const cleanTeamOneGames = matchTeamOneGames.trim();
+      const cleanTeamTwoGames = matchTeamTwoGames.trim();
+
+      if (cleanTeamOneGames !== '' && cleanTeamTwoGames !== '') {
+        const unfinishedRound: MatchRound = {
+          id: Date.now(),
+          teamOneGames: cleanTeamOneGames,
+          teamTwoGames: cleanTeamTwoGames,
+        };
+
+        finalMatchRounds = [...matchRounds, unfinishedRound];
       }
     }
 
@@ -474,6 +591,24 @@ export default function HomeScreen() {
         lapDistance: lapDistance.trim(),
         lapDistanceUnit: lapDistanceUnit,
         totalDistance: getTotalLapDistance(),
+      };
+    }
+
+    if (isMatchActivity(selectedActivity)) {
+      const teamOneTotal = finalMatchRounds.reduce((total, round) => {
+        return total + Number(round.teamOneGames || 0);
+      }, 0);
+
+      const teamTwoTotal = finalMatchRounds.reduce((total, round) => {
+        return total + Number(round.teamTwoGames || 0);
+      }, 0);
+
+      newSession.details = {
+        matchTeamOneName: matchTeamOneName.trim(),
+        matchTeamTwoName: matchTeamTwoName.trim(),
+        matchRounds: finalMatchRounds,
+        matchTeamOneTotal: teamOneTotal,
+        matchTeamTwoTotal: teamTwoTotal,
       };
     }
 
@@ -820,6 +955,95 @@ export default function HomeScreen() {
     );
   };
 
+  const renderMatchFields = () => {
+    if (!isMatchActivity(selectedActivity)) {
+      return null;
+    }
+
+    return (
+      <View style={styles.detailsBox}>
+        <Text style={styles.detailsTitle}>{selectedActivity} Match</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Team 1 name"
+          placeholderTextColor="#888"
+          value={matchTeamOneName}
+          onChangeText={setMatchTeamOneName}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Team 2 name"
+          placeholderTextColor="#888"
+          value={matchTeamTwoName}
+          onChangeText={setMatchTeamTwoName}
+        />
+
+        <Text style={styles.detailsSubtitle}>Add round score</Text>
+
+        <View style={styles.scoreRow}>
+          <TextInput
+            style={styles.scoreInput}
+            placeholder="Team 1 games"
+            placeholderTextColor="#888"
+            value={matchTeamOneGames}
+            onChangeText={setMatchTeamOneGames}
+            keyboardType="number-pad"
+          />
+
+          <TextInput
+            style={styles.scoreInput}
+            placeholder="Team 2 games"
+            placeholderTextColor="#888"
+            value={matchTeamTwoGames}
+            onChangeText={setMatchTeamTwoGames}
+            keyboardType="number-pad"
+          />
+        </View>
+
+        <TouchableOpacity style={styles.addExerciseButton} onPress={addMatchRound}>
+          <Text style={styles.buttonText}>+ Add Round</Text>
+        </TouchableOpacity>
+
+        <View style={styles.exerciseListBox}>
+          <Text style={styles.exerciseListTitle}>Rounds Added</Text>
+
+          {matchRounds.length === 0 ? (
+            <Text style={styles.emptyHistory}>No rounds added yet</Text>
+          ) : (
+            matchRounds.map((round, index) => (
+              <View key={round.id} style={styles.exerciseRow}>
+                <View style={styles.exerciseInfo}>
+                  <Text style={styles.exerciseName}>
+                    Round {index + 1}: {round.teamOneGames} - {round.teamTwoGames}
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.exerciseDeleteButton}
+                  onPress={() => deleteMatchRound(round.id)}
+                >
+                  <Text style={styles.exerciseDeleteText}>X</Text>
+                </TouchableOpacity>
+              </View>
+            ))
+          )}
+        </View>
+
+        <View style={styles.matchTotalBox}>
+          <Text style={styles.matchTotalTitle}>Total Games</Text>
+          <Text style={styles.matchTotalText}>
+            {matchTeamOneName || 'Team 1'}: {getMatchTeamOneTotal()}
+          </Text>
+          <Text style={styles.matchTotalText}>
+            {matchTeamTwoName || 'Team 2'}: {getMatchTeamTwoTotal()}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
   const renderSessionDetails = (session: Session) => {
     if (session.activity === 'Football' && session.details) {
       return (
@@ -883,6 +1107,39 @@ export default function HomeScreen() {
       );
     }
 
+    if (isMatchActivity(session.activity) && session.details) {
+      return (
+        <View style={styles.savedDetailsBox}>
+          <Text style={styles.savedDetailsText}>
+            Team 1: {session.details.matchTeamOneName || 'Not filled'}
+          </Text>
+          <Text style={styles.savedDetailsText}>
+            Team 2: {session.details.matchTeamTwoName || 'Not filled'}
+          </Text>
+
+          <Text style={styles.savedDetailsHeader}>Rounds:</Text>
+
+          {!session.details.matchRounds || session.details.matchRounds.length === 0 ? (
+            <Text style={styles.savedDetailsText}>No rounds saved</Text>
+          ) : (
+            session.details.matchRounds.map((round, index) => (
+              <Text key={round.id} style={styles.savedDetailsText}>
+                Round {index + 1}: {round.teamOneGames} - {round.teamTwoGames}
+              </Text>
+            ))
+          )}
+
+          <Text style={styles.savedDetailsHeader}>Total Games:</Text>
+          <Text style={styles.savedDetailsText}>
+            {session.details.matchTeamOneName || 'Team 1'}: {session.details.matchTeamOneTotal || 0}
+          </Text>
+          <Text style={styles.savedDetailsText}>
+            {session.details.matchTeamTwoName || 'Team 2'}: {session.details.matchTeamTwoTotal || 0}
+          </Text>
+        </View>
+      );
+    }
+
     return null;
   };
 
@@ -900,6 +1157,7 @@ export default function HomeScreen() {
           {renderFootballFields()}
           {renderGymFields()}
           {renderLapFields()}
+          {renderMatchFields()}
 
           <TouchableOpacity style={styles.startButton} onPress={startActivity}>
             <Text style={styles.buttonText}>Start Activity</Text>
@@ -1343,6 +1601,23 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: 'bold',
     fontSize: 15,
+  },
+  matchTotalBox: {
+    backgroundColor: '#101820',
+    padding: 14,
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  matchTotalTitle: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  matchTotalText: {
+    color: '#ffffff',
+    fontSize: 17,
+    marginBottom: 4,
   },
   startButton: {
     backgroundColor: '#1f8a70',
