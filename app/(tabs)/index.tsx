@@ -62,7 +62,6 @@ export default function HomeScreen() {
   const [endTime, setEndTime] = useState<Date | null>(null);
 
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [historyFilter, setHistoryFilter] = useState('All');
 
   const [footballTeamOneName, setFootballTeamOneName] = useState('');
   const [footballTeamTwoName, setFootballTeamTwoName] = useState('');
@@ -750,14 +749,6 @@ if (!isVehicleMaintenanceActivity(selectedActivity) && (!startTime || !endTime))
     setEndTime(null);
     resetActivityFields();
   };
-const getFilteredSessions = () => {
-  if (historyFilter === 'All') {
-    return sessions;
-  }
-
-  return sessions.filter((session) => session.activity === historyFilter);
-};
-
   const getTotalTime = () => {
     const totalSeconds = sessions.reduce((total, session) => {
       return total + (session.durationSeconds || 0);
@@ -1371,18 +1362,20 @@ const getGroupedActivities = () => {
     );
   }
 
+
   return (
     <GestureHandlerRootView style={styles.root}>
       <View style={styles.mainContainer}>
         <ScrollView style={styles.container}>
           <Text style={styles.title}>ActiveTrack</Text>
           <Text style={styles.subtitle}>Welcome, {loginUsername}</Text>
+
           <Text style={styles.homeDescription}>
             Track sports, training, horse riding, studying, and game sessions.
           </Text>
 
           <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-          <Text style={styles.logoutButtonText}>Logout</Text>
+            <Text style={styles.logoutButtonText}>Logout</Text>
           </TouchableOpacity>
 
           <View style={styles.statsBox}>
@@ -1414,111 +1407,38 @@ const getGroupedActivities = () => {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.hintText}>Swipe left on an activity to delete it</Text>
+          <Text style={styles.hintText}>
+            Swipe left on an activity to delete it
+          </Text>
 
           <View style={styles.activityList}>
-  {activities.length === 0 ? (
-    <Text style={styles.emptyHistory}>
-      No activities available. Press Add Activity or Reset List.
-    </Text>
-  ) : (
-    getGroupedActivities().map((group) => (
-      <View key={group.groupName} style={styles.activityGroup}>
-        <Text style={styles.activityGroupTitle}>{group.groupName}</Text>
+            {activities.length === 0 ? (
+              <Text style={styles.emptyHistory}>
+                No activities available. Press Add Activity or Reset List.
+              </Text>
+            ) : (
+              getGroupedActivities().map((group) => (
+                <View key={group.groupName} style={styles.activityGroup}>
+                  <Text style={styles.activityGroupTitle}>
+                    {group.groupName}
+                  </Text>
 
-        {group.groupActivities.map((activity) => (
-          <Swipeable
-            key={activity}
-            renderRightActions={() => renderActivityDeleteAction(activity)}
-          >
-            <TouchableOpacity
-              style={styles.activityButton}
-              onPress={() => openActivity(activity)}
-            >
-              <Text style={styles.activityText}>{activity}</Text>
-            </TouchableOpacity>
-          </Swipeable>
-        ))}
-      </View>
-    ))
-  )}
-</View>
-
-          <View style={styles.historySection}>
-            <View style={styles.historyHeader}>
-              <Text style={styles.historyTitle}>History</Text>
-
-              {sessions.length > 0 && (
-                <TouchableOpacity style={styles.clearHistoryButton} onPress={clearAllHistory}>
-                  <Text style={styles.clearHistoryText}>Clear All</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {sessions.length > 0 && (
-              <Text style={styles.hintText}>Swipe left on a session to delete it</Text>
-            )}
-            {sessions.length > 0 && (
-  <ScrollView
-    horizontal
-    showsHorizontalScrollIndicator={false}
-    style={styles.historyFilterScroll}
-  >
-    {['All', ...activities].map((activity) => (
-      <TouchableOpacity
-        key={activity}
-        style={[
-          styles.historyFilterButton,
-          historyFilter === activity && styles.historyFilterButtonActive,
-        ]}
-        onPress={() => setHistoryFilter(activity)}
-      >
-        <Text
-          style={[
-            styles.historyFilterText,
-            historyFilter === activity && styles.historyFilterTextActive,
-          ]}
-        >
-          {activity}
-        </Text>
-      </TouchableOpacity>
-    ))}
-  </ScrollView>
-)}
-
-            {sessions.length === 0 ? (
-  <Text style={styles.emptyHistory}>No sessions saved yet</Text>
-) : getFilteredSessions().length === 0 ? (
-  <Text style={styles.emptyHistory}>No sessions for {historyFilter} yet</Text>
-) : (
-  getFilteredSessions().map((session) => (
-                <Swipeable
-                  key={session.id}
-                  renderRightActions={() => renderSessionDeleteAction(session.id)}
-                >
-                  <View style={styles.sessionCard}>
-  <View style={styles.sessionTopRow}>
-    <View style={styles.activityBadge}>
-      <Text style={styles.activityBadgeText}>{session.activity}</Text>
-    </View>
-
-    <Text style={styles.sessionDate}>{session.date}</Text>
-  </View>
-
-  {!isVehicleMaintenanceActivity(session.activity) && (
-  <>
-    <Text style={styles.sessionDurationLarge}>{session.duration}</Text>
-
-    <View style={styles.sessionTimeRow}>
-      <Text style={styles.sessionTimeText}>Start: {session.start}</Text>
-      <Text style={styles.sessionTimeText}>End: {session.end}</Text>
-    </View>
-  </>
-)}
-
-  {renderSessionDetails(session)}
-</View>
-                </Swipeable>
+                  {group.groupActivities.map((activity) => (
+                    <Swipeable
+                      key={activity}
+                      renderRightActions={() =>
+                        renderActivityDeleteAction(activity)
+                      }
+                    >
+                      <TouchableOpacity
+                        style={styles.activityButton}
+                        onPress={() => openActivity(activity)}
+                      >
+                        <Text style={styles.activityText}>{activity}</Text>
+                      </TouchableOpacity>
+                    </Swipeable>
+                  ))}
+                </View>
               ))
             )}
           </View>
@@ -1538,7 +1458,10 @@ const getGroupedActivities = () => {
                 onChangeText={setOtherActivityName}
               />
 
-              <TouchableOpacity style={styles.startButton} onPress={addOtherActivity}>
+              <TouchableOpacity
+                style={styles.startButton}
+                onPress={addOtherActivity}
+              >
                 <Text style={styles.buttonText}>Save and Start</Text>
               </TouchableOpacity>
 
@@ -1555,7 +1478,7 @@ const getGroupedActivities = () => {
     </GestureHandlerRootView>
   );
 }
-  
+
 const styles = StyleSheet.create({
   root: {
     flex: 1,
