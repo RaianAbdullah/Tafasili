@@ -22,10 +22,16 @@ export type BalootScore = {
 };
 
 export type HorseRidingDetails = {
+  riderName?: string;
   horseName?: string;
   trainingType?: string;
+  trainingIntensity?: string;
+  trainingTime?: string;
   restDay?: boolean;
   walkingMinutes?: string;
+  walkMinutes?: string;
+  trotMinutes?: string;
+  canterMinutes?: string;
 
   hayGiven?: boolean;
   waterChecked?: boolean;

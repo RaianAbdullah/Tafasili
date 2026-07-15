@@ -10,17 +10,35 @@ import {
 type Props = {
   selectedActivity: string | null;
 
+  horseRiderName: string;
+  setHorseRiderName: Dispatch<SetStateAction<string>>;
+
   horseName: string;
   setHorseName: Dispatch<SetStateAction<string>>;
 
   horseTrainingType: string;
   setHorseTrainingType: Dispatch<SetStateAction<string>>;
 
+  horseTrainingIntensity: string;
+  setHorseTrainingIntensity: Dispatch<SetStateAction<string>>;
+
+  horseTrainingTime: string;
+  setHorseTrainingTime: Dispatch<SetStateAction<string>>;
+
   horseRestDay: boolean;
   setHorseRestDay: Dispatch<SetStateAction<boolean>>;
 
   horseWalkingMinutes: string;
   setHorseWalkingMinutes: Dispatch<SetStateAction<string>>;
+
+  horseWalkMinutes: string;
+  setHorseWalkMinutes: Dispatch<SetStateAction<string>>;
+
+  horseTrotMinutes: string;
+  setHorseTrotMinutes: Dispatch<SetStateAction<string>>;
+
+  horseCanterMinutes: string;
+  setHorseCanterMinutes: Dispatch<SetStateAction<string>>;
 
   horseHayGiven: boolean;
   setHorseHayGiven: Dispatch<SetStateAction<boolean>>;
@@ -120,6 +138,14 @@ export default function HorseRidingTracker(props: Props) {
 
       <TextInput
         style={styles.input}
+        placeholder="Rider name"
+        placeholderTextColor="#8f8f92"
+        value={props.horseRiderName}
+        onChangeText={props.setHorseRiderName}
+      />
+
+      <TextInput
+        style={styles.input}
         placeholder="Horse name, example: Durkji"
         placeholderTextColor="#8f8f92"
         value={props.horseName}
@@ -134,6 +160,38 @@ export default function HorseRidingTracker(props: Props) {
         onChangeText={props.setHorseTrainingType}
       />
 
+      <Text style={styles.detailsSubtitle}>Training Intensity</Text>
+
+      {['Easy', 'Medium', 'Hard'].map((level) => (
+        <TouchableOpacity
+          key={level}
+          style={[
+            styles.toggleButton,
+            props.horseTrainingIntensity === level &&
+              styles.selectedToggleButton,
+          ]}
+          onPress={() => props.setHorseTrainingIntensity(level)}
+        >
+          <Text
+            style={[
+              styles.toggleText,
+              props.horseTrainingIntensity === level &&
+                styles.selectedToggleText,
+            ]}
+          >
+            {level}
+          </Text>
+        </TouchableOpacity>
+      ))}
+
+      <TextInput
+        style={styles.input}
+        placeholder="Time of training, example: 45 min"
+        placeholderTextColor="#8f8f92"
+        value={props.horseTrainingTime}
+        onChangeText={props.setHorseTrainingTime}
+      />
+
       {renderYesNoButton('Rest Day', props.horseRestDay, () =>
         props.setHorseRestDay(!props.horseRestDay)
       )}
@@ -144,6 +202,35 @@ export default function HorseRidingTracker(props: Props) {
         placeholderTextColor="#8f8f92"
         value={props.horseWalkingMinutes}
         onChangeText={props.setHorseWalkingMinutes}
+        keyboardType="number-pad"
+      />
+
+      <Text style={styles.detailsSubtitle}>Gait Tracking</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Walk minutes"
+        placeholderTextColor="#8f8f92"
+        value={props.horseWalkMinutes}
+        onChangeText={props.setHorseWalkMinutes}
+        keyboardType="number-pad"
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Trot minutes"
+        placeholderTextColor="#8f8f92"
+        value={props.horseTrotMinutes}
+        onChangeText={props.setHorseTrotMinutes}
+        keyboardType="number-pad"
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Canter minutes"
+        placeholderTextColor="#8f8f92"
+        value={props.horseCanterMinutes}
+        onChangeText={props.setHorseCanterMinutes}
         keyboardType="number-pad"
       />
 

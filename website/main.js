@@ -55,15 +55,21 @@ const translations = {
     createProfile: 'Create an ActiveTrack profile for this browser.',
     signInDescription: 'Sign in to continue tracking on this device.',
     resetDescription: 'Use your recovery code to set a new password.',
-    fullName: 'Full name',
+    name: 'Name',
     identifier: 'Email or phone',
     password: 'Password',
+    repeatPassword: 'Repeat password',
+    passwordMinimum: 'Password must be at least 8 characters.',
     recoveryCode: 'Recovery code',
     newPassword: 'New password',
-    mainGoal: 'Main goal',
     resetPassword: 'Reset password',
     passkey: 'Use Face ID / Passkey',
     forgot: 'Forgot username or password?',
+    signupLegal:
+      'By creating an ActiveTrack account, you agree to save your data on this device. We never share your data.',
+    or: 'Or',
+    appleSignup: 'Sign up with Apple',
+    facebookSignup: 'Sign up with Facebook',
     backToSignin: 'Back to sign in',
     saveRecoveryCode: 'Save this recovery code',
     recoveryHelp: 'You need it if you forget your password.',
@@ -141,15 +147,21 @@ const translations = {
     createProfile: 'أنشئ ملف ActiveTrack لهذا المتصفح.',
     signInDescription: 'سجل الدخول لمتابعة التتبع على هذا الجهاز.',
     resetDescription: 'استخدم رمز الاسترجاع لتعيين كلمة مرور جديدة.',
-    fullName: 'الاسم الكامل',
+    name: 'الاسم',
     identifier: 'البريد أو رقم الجوال',
     password: 'كلمة المرور',
+    repeatPassword: 'تأكيد كلمة المرور',
+    passwordMinimum: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل.',
     recoveryCode: 'رمز الاسترجاع',
     newPassword: 'كلمة مرور جديدة',
-    mainGoal: 'الهدف الرئيسي',
     resetPassword: 'إعادة تعيين كلمة المرور',
     passkey: 'استخدام Face ID / مفتاح المرور',
     forgot: 'نسيت اسم المستخدم أو كلمة المرور؟',
+    signupLegal:
+      'بإنشاء حساب ActiveTrack، أنت توافق على حفظ بياناتك على هذا الجهاز. لا نشارك بياناتك.',
+    or: 'أو',
+    appleSignup: 'إنشاء حساب باستخدام Apple',
+    facebookSignup: 'إنشاء حساب باستخدام Facebook',
     backToSignin: 'العودة لتسجيل الدخول',
     saveRecoveryCode: 'احفظ رمز الاسترجاع',
     recoveryHelp: 'ستحتاجه إذا نسيت كلمة المرور.',
@@ -256,11 +268,17 @@ const authDescription = document.querySelector('#auth-description');
 const authSubmit = document.querySelector('#auth-submit');
 const authMessage = document.querySelector('#auth-message');
 const identifierInput = document.querySelector('input[name="identifier"]');
+const firstNameInput = document.querySelector('input[name="firstName"]');
+const lastNameInput = document.querySelector('input[name="lastName"]');
 const passwordInput = document.querySelector('#auth-password');
+const repeatPasswordInput = document.querySelector('input[name="repeatPassword"]');
 const recoveryCodeInput = document.querySelector('input[name="recoveryCode"]');
 const newPasswordInput = document.querySelector('input[name="newPassword"]');
 const passkeyButton = document.querySelector('#passkey-button');
 const forgotButton = document.querySelector('#forgot-button');
+const signupCancelButton = document.querySelector('#signup-cancel-button');
+const appleSignupButton = document.querySelector('#apple-signup-button');
+const facebookSignupButton = document.querySelector('#facebook-signup-button');
 const recoveryCard = document.querySelector('#recovery-card');
 const recoveryCodeOutput = document.querySelector('#recovery-code');
 const backButton = document.querySelector('#back-button');
@@ -319,13 +337,18 @@ function applyLanguage() {
   setText('#hero-copy', text('heroCopy'));
   setText('#signin-tab', text('signIn'));
   setText('#signup-tab', text('signUp'));
-  setText('#full-name-label', text('fullName'));
+  setText('#name-label', text('name'));
   setText('#identifier-label', text('identifier'));
   setText('#password-label', text('password'));
+  setText('#repeat-password-label', text('repeatPassword'));
+  setText('#password-minimum', text('passwordMinimum'));
   setText('#recovery-label', text('recoveryCode'));
   setText('#new-password-label', text('newPassword'));
-  setText('#goal-label', text('mainGoal'));
   setText('#passkey-button', text('passkey'));
+  setText('#signup-legal', text('signupLegal'));
+  setText('#signup-divider', text('or'));
+  setText('#apple-signup-button', text('appleSignup'));
+  setText('#facebook-signup-button', text('facebookSignup'));
   setText('#recovery-card-title', text('saveRecoveryCode'));
   setText('#recovery-card-text', text('recoveryHelp'));
   setText('#security-title', text('securityTitle'));
@@ -471,7 +494,10 @@ function setAuthMode(mode) {
       : text('signInDescription');
   authSubmit.textContent = isSignup ? text('createAccount') : isReset ? text('resetPassword') : text('signIn');
   identifierInput.required = !isReset;
+  firstNameInput.required = isSignup;
+  lastNameInput.required = isSignup;
   passwordInput.required = !isReset;
+  repeatPasswordInput.required = isSignup;
   recoveryCodeInput.required = isReset;
   newPasswordInput.required = isReset;
   passwordInput.closest('label').style.display = isReset ? 'none' : 'grid';
@@ -710,10 +736,22 @@ function getFieldsForActivity(activity) {
     return `
       <div class="horse-form">
         ${fieldSection(horseText('trainingSection'), [
+          inputField(horseText('riderName'), 'riderName', horseText('riderNamePlaceholder')),
           inputField(horseText('horseName'), 'horseName', horseText('horseNamePlaceholder')),
           inputField(horseText('trainingType'), 'trainingType', horseText('trainingTypePlaceholder')),
+          selectField(horseText('trainingIntensity'), 'trainingIntensity', [
+            horseText('easy'),
+            horseText('medium'),
+            horseText('hard'),
+          ]),
+          inputField(horseText('trainingTime'), 'trainingTime', '45 min'),
           checkboxField(horseText('restDay'), 'restDay'),
           inputField(horseText('walkingMinutes'), 'walkingMinutes', '20', 'number'),
+        ])}
+        ${fieldSection(horseText('gaitTrackingSection'), [
+          inputField(horseText('walkMinutes'), 'walkMinutes', '10', 'number'),
+          inputField(horseText('trotMinutes'), 'trotMinutes', '15', 'number'),
+          inputField(horseText('canterMinutes'), 'canterMinutes', '8', 'number'),
         ])}
         ${fieldSection(horseText('dailyCareSection'), [
           checkboxField(horseText('hayGiven'), 'hayGiven'),
@@ -871,12 +909,23 @@ function horseText(key) {
   const labels = {
     en: {
       trainingSection: 'Training',
+      riderName: 'Rider name',
+      riderNamePlaceholder: 'Rider name',
       horseName: 'Horse name',
       horseNamePlaceholder: 'Horse name, example: Durkji',
       trainingType: 'Training type',
       trainingTypePlaceholder: 'Dressage / Flatwork / Jumping',
+      trainingIntensity: 'Training intensity',
+      trainingTime: 'Time of training',
+      easy: 'Easy',
+      medium: 'Medium',
+      hard: 'Hard',
       restDay: 'Rest Day',
       walkingMinutes: 'Daily walking minutes',
+      gaitTrackingSection: 'Gait Tracking',
+      walkMinutes: 'Walk minutes',
+      trotMinutes: 'Trot minutes',
+      canterMinutes: 'Canter minutes',
       dailyCareSection: 'Daily Care',
       hayGiven: 'Hay Given',
       waterChecked: 'Water Checked',
@@ -910,12 +959,23 @@ function horseText(key) {
     },
     ar: {
       trainingSection: 'التدريب',
+      riderName: 'اسم الراكب',
+      riderNamePlaceholder: 'اسم الراكب',
       horseName: 'اسم الخيل',
       horseNamePlaceholder: 'اسم الخيل، مثال: Durkji',
       trainingType: 'نوع التدريب',
       trainingTypePlaceholder: 'دريساج / فلات وورك / قفز',
+      trainingIntensity: 'شدة التدريب',
+      trainingTime: 'وقت التدريب',
+      easy: 'سهل',
+      medium: 'متوسط',
+      hard: 'صعب',
       restDay: 'يوم راحة',
       walkingMinutes: 'دقائق المشي اليومية',
+      gaitTrackingSection: 'تتبع المشيات',
+      walkMinutes: 'دقائق المشي',
+      trotMinutes: 'دقائق التروت',
+      canterMinutes: 'دقائق الكانتر',
       dailyCareSection: 'العناية اليومية',
       hayGiven: 'تم إعطاء التبن',
       waterChecked: 'تم فحص الماء',
@@ -1157,8 +1217,11 @@ authForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const formData = new FormData(authForm);
   const identifier = String(formData.get('identifier') || '').trim();
-  const fullName = String(formData.get('fullName') || '').trim() || identifier;
+  const firstName = String(formData.get('firstName') || '').trim();
+  const lastName = String(formData.get('lastName') || '').trim();
+  const fullName = `${firstName} ${lastName}`.trim() || identifier;
   const password = String(formData.get('password') || '');
+  const repeatPassword = String(formData.get('repeatPassword') || '');
   const newPassword = String(formData.get('newPassword') || '');
   const recoveryCode = String(formData.get('recoveryCode') || '').trim();
 
@@ -1169,15 +1232,22 @@ authForm.addEventListener('submit', async (event) => {
         return;
       }
 
+      if (password !== repeatPassword) {
+        authMessage.textContent = 'Passwords do not match.';
+        return;
+      }
+
       const passwordSalt = bytesToBase64(crypto.getRandomValues(new Uint8Array(16)));
       const recoverySalt = bytesToBase64(crypto.getRandomValues(new Uint8Array(16)));
       const generatedRecoveryCode = randomToken(18);
       const user = {
         schemaVersion: 2,
         createdAt: new Date().toISOString(),
+        firstName,
+        lastName,
         fullName,
         identifier,
-        goal: formData.get('goal'),
+        goal: null,
         passwordSalt,
         passwordHash: await hashSecret(password, passwordSalt),
         recoverySalt,
@@ -1277,6 +1347,13 @@ forgotButton.addEventListener('click', () => {
 });
 
 passkeyButton.addEventListener('click', loginWithPasskey);
+signupCancelButton.addEventListener('click', () => setAuthMode('signin'));
+appleSignupButton.addEventListener('click', () => {
+  authMessage.textContent = 'Apple sign-up can be connected later.';
+});
+facebookSignupButton.addEventListener('click', () => {
+  authMessage.textContent = 'Facebook sign-up can be connected later.';
+});
 
 logoutButton.addEventListener('click', () => {
   stopTimer();

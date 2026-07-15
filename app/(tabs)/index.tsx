@@ -52,8 +52,12 @@ const matchActivities = ['Padel', 'Tennis'];
 export default function HomeScreen() {
   const navigation = useNavigation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [signupFirstName, setSignupFirstName] = useState('');
+  const [signupLastName, setSignupLastName] = useState('');
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [signupRepeatPassword, setSignupRepeatPassword] = useState('');
   const [activities, setActivities] = useState<string[]>(defaultActivities);
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
 
@@ -91,10 +95,16 @@ export default function HomeScreen() {
   const [balootScores, setBalootScores] = useState<BalootScore[]>([]);
   const [balootDealerDirection, setBalootDealerDirection] = useState('↑');
 
+  const [horseRiderName, setHorseRiderName] = useState('');
   const [horseName, setHorseName] = useState('');
   const [horseTrainingType, setHorseTrainingType] = useState('');
+  const [horseTrainingIntensity, setHorseTrainingIntensity] = useState('');
+  const [horseTrainingTime, setHorseTrainingTime] = useState('');
   const [horseRestDay, setHorseRestDay] = useState(false);
   const [horseWalkingMinutes, setHorseWalkingMinutes] = useState('');
+  const [horseWalkMinutes, setHorseWalkMinutes] = useState('');
+  const [horseTrotMinutes, setHorseTrotMinutes] = useState('');
+  const [horseCanterMinutes, setHorseCanterMinutes] = useState('');
 
   const [horseHayGiven, setHorseHayGiven] = useState(false);
   const [horseWaterChecked, setHorseWaterChecked] = useState(false);
@@ -163,9 +173,33 @@ const [vehicleMileage, setVehicleMileage] = useState('');
 
   setIsLoggedIn(true);
 };
+const signup = () => {
+  if (signupFirstName.trim() === '' || signupLastName.trim() === '') {
+    alert('Please enter first and last name');
+    return;
+  }
+
+  if (loginUsername.trim() === '') {
+    alert('Please enter email or phone number');
+    return;
+  }
+
+  if (loginPassword.length < 8) {
+    alert('Password must be at least 8 characters');
+    return;
+  }
+
+  if (loginPassword !== signupRepeatPassword) {
+    alert('Passwords do not match');
+    return;
+  }
+
+  setIsLoggedIn(true);
+};
 const logout = () => {
   setIsLoggedIn(false);
   setLoginPassword('');
+  setSignupRepeatPassword('');
 };
   const loadSavedData = async () => {
     try {
@@ -282,10 +316,16 @@ const logout = () => {
     setVehicleCost('');
     setVehicleNotes('');
 
+    setHorseRiderName('');
     setHorseName('');
     setHorseTrainingType('');
+    setHorseTrainingIntensity('');
+    setHorseTrainingTime('');
     setHorseRestDay(false);
     setHorseWalkingMinutes('');
+    setHorseWalkMinutes('');
+    setHorseTrotMinutes('');
+    setHorseCanterMinutes('');
 
     setHorseHayGiven(false);
     setHorseWaterChecked(false);
@@ -657,10 +697,16 @@ if (!isVehicleMaintenanceActivity(selectedActivity) && (!startTime || !endTime))
     if (isHorseRidingActivity(selectedActivity)) {
       newSession.details = {
         horseRiding: {
+          riderName: horseRiderName.trim(),
           horseName: horseName.trim(),
           trainingType: horseTrainingType.trim(),
+          trainingIntensity: horseTrainingIntensity,
+          trainingTime: horseTrainingTime.trim(),
           restDay: horseRestDay,
           walkingMinutes: horseWalkingMinutes.trim(),
+          walkMinutes: horseWalkMinutes.trim(),
+          trotMinutes: horseTrotMinutes.trim(),
+          canterMinutes: horseCanterMinutes.trim(),
 
           hayGiven: horseHayGiven,
           waterChecked: horseWaterChecked,
@@ -996,16 +1042,36 @@ const getGroupedActivities = () => {
           <Text style={styles.savedDetailsHeader}>Horse Riding:</Text>
 
           <Text style={styles.savedDetailsText}>
+            Rider: {horse.riderName || 'Not filled'}
+          </Text>
+          <Text style={styles.savedDetailsText}>
             Horse: {horse.horseName || 'Not filled'}
           </Text>
           <Text style={styles.savedDetailsText}>
             Training: {horse.trainingType || 'Not filled'}
           </Text>
           <Text style={styles.savedDetailsText}>
+            Intensity: {horse.trainingIntensity || 'Not filled'}
+          </Text>
+          <Text style={styles.savedDetailsText}>
+            Training Time: {horse.trainingTime || 'Not filled'}
+          </Text>
+          <Text style={styles.savedDetailsText}>
             Rest Day: {horse.restDay ? 'Yes' : 'No'}
           </Text>
           <Text style={styles.savedDetailsText}>
             Walking Minutes: {horse.walkingMinutes || '0'}
+          </Text>
+
+          <Text style={styles.savedDetailsHeader}>Gait Tracking:</Text>
+          <Text style={styles.savedDetailsText}>
+            Walk: {horse.walkMinutes || '0'} min
+          </Text>
+          <Text style={styles.savedDetailsText}>
+            Trot: {horse.trotMinutes || '0'} min
+          </Text>
+          <Text style={styles.savedDetailsText}>
+            Canter: {horse.canterMinutes || '0'} min
           </Text>
 
           <Text style={styles.savedDetailsHeader}>Daily Care:</Text>
@@ -1124,37 +1190,151 @@ const getGroupedActivities = () => {
     return null;
   };
   if (!isLoggedIn) {
+    const isSignupMode = authMode === 'signup';
+
     return (
     <GestureHandlerRootView style={styles.root}>
-      <View style={styles.loginContainer}>
-        <Text style={styles.loginTitle}>ActiveTrack</Text>
-        <Text style={styles.loginSubtitle}>Sign in to track your activities</Text>
+      <ScrollView
+        contentContainerStyle={[
+          styles.loginContainer,
+          isSignupMode && styles.signupContainer,
+        ]}
+      >
+        {isSignupMode && (
+          <TouchableOpacity
+            style={styles.signupCancelButton}
+            onPress={() => setAuthMode('signin')}
+          >
+            <Text style={styles.signupCancelText}>Cancel</Text>
+          </TouchableOpacity>
+        )}
 
+        <Text style={[styles.loginTitle, isSignupMode && styles.signupTitle]}>
+          {isSignupMode ? 'Create an account' : 'ActiveTrack'}
+        </Text>
+        {!isSignupMode && (
+          <Text style={styles.loginSubtitle}>Sign in to track your activities</Text>
+        )}
+
+        {!isSignupMode && (
+          <View style={styles.authModeRow}>
+            <TouchableOpacity
+              style={[
+                styles.authModeButton,
+                authMode === 'signin' && styles.authModeButtonActive,
+              ]}
+              onPress={() => setAuthMode('signin')}
+            >
+              <Text style={styles.authModeText}>Sign In</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.authModeButton}
+              onPress={() => setAuthMode('signup')}
+            >
+              <Text style={styles.authModeText}>Sign Up</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {isSignupMode && (
+          <>
+            <Text style={styles.signupLabel}>Name</Text>
+            <View style={styles.signupNameRow}>
+              <TextInput
+                style={[styles.input, styles.signupInput, styles.signupNameInput]}
+                placeholder="Raian"
+                placeholderTextColor="#555252"
+                value={signupFirstName}
+                onChangeText={setSignupFirstName}
+              />
+
+              <TextInput
+                style={[styles.input, styles.signupInput, styles.signupNameInput]}
+                placeholder="Abutaleb"
+                placeholderTextColor="#555252"
+                value={signupLastName}
+                onChangeText={setSignupLastName}
+              />
+            </View>
+          </>
+        )}
+
+        {isSignupMode && <Text style={styles.signupLabel}>Email</Text>}
         <TextInput
-          style={styles.input}
-          placeholder="Username or phone number"
-          placeholderTextColor="#8f8f92"
+          style={[styles.input, isSignupMode && styles.signupInput]}
+          placeholder={isSignupMode ? 'raianabutaleb@outlook.sa' : 'Username or phone number'}
+          placeholderTextColor={isSignupMode ? '#555252' : '#8f8f92'}
           value={loginUsername}
           onChangeText={setLoginUsername}
         />
 
+        {isSignupMode && <Text style={styles.signupLabel}>Password</Text>}
         <TextInput
-          style={styles.input}
+          style={[styles.input, isSignupMode && styles.signupInput]}
           placeholder="Password"
-          placeholderTextColor="#8f8f92"
+          placeholderTextColor={isSignupMode ? '#555252' : '#8f8f92'}
           value={loginPassword}
           onChangeText={setLoginPassword}
           secureTextEntry
         />
 
-        <TouchableOpacity style={styles.startButton} onPress={login}>
-          <Text style={styles.buttonText}>Sign In</Text>
+        {isSignupMode && (
+          <>
+            <Text style={styles.signupLabel}>Repeat password</Text>
+            <TextInput
+              style={[styles.input, styles.signupInput]}
+              placeholder="Repeat password"
+              placeholderTextColor="#555252"
+              value={signupRepeatPassword}
+              onChangeText={setSignupRepeatPassword}
+              secureTextEntry
+            />
+
+            <Text style={styles.signupHelp}>
+              Password must be at least 8 characters.
+            </Text>
+          </>
+        )}
+
+        <TouchableOpacity
+          style={[styles.startButton, isSignupMode && styles.signupButton]}
+          onPress={isSignupMode ? signup : login}
+        >
+          <Text style={styles.buttonText}>
+            {isSignupMode ? 'Sign Up' : 'Sign In'}
+          </Text>
         </TouchableOpacity>
 
-        <Text style={styles.loginHint}>
-          Demo login: enter anything for now
-        </Text>
-      </View>
+        {isSignupMode ? (
+          <>
+            <Text style={styles.signupLegal}>
+              By creating an ActiveTrack account, you agree to save your data on
+              this device. We never share your data.
+            </Text>
+
+            <Text style={styles.signupDivider}>Or</Text>
+
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={() => alert('Apple sign-up can be connected later')}
+            >
+              <Text style={styles.socialButtonText}>Sign up with Apple</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={() => alert('Facebook sign-up can be connected later')}
+            >
+              <Text style={styles.socialButtonText}>Sign up with Facebook</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <TouchableOpacity onPress={() => setAuthMode('signup')}>
+            <Text style={styles.loginHint}>Create a new account</Text>
+          </TouchableOpacity>
+        )}
+      </ScrollView>
     </GestureHandlerRootView>
   );
 }
@@ -1237,14 +1417,26 @@ const getGroupedActivities = () => {
           
           <HorseRidingTracker
   selectedActivity={selectedActivity}
+  horseRiderName={horseRiderName}
+  setHorseRiderName={setHorseRiderName}
   horseName={horseName}
   setHorseName={setHorseName}
   horseTrainingType={horseTrainingType}
   setHorseTrainingType={setHorseTrainingType}
+  horseTrainingIntensity={horseTrainingIntensity}
+  setHorseTrainingIntensity={setHorseTrainingIntensity}
+  horseTrainingTime={horseTrainingTime}
+  setHorseTrainingTime={setHorseTrainingTime}
   horseRestDay={horseRestDay}
   setHorseRestDay={setHorseRestDay}
   horseWalkingMinutes={horseWalkingMinutes}
   setHorseWalkingMinutes={setHorseWalkingMinutes}
+  horseWalkMinutes={horseWalkMinutes}
+  setHorseWalkMinutes={setHorseWalkMinutes}
+  horseTrotMinutes={horseTrotMinutes}
+  setHorseTrotMinutes={setHorseTrotMinutes}
+  horseCanterMinutes={horseCanterMinutes}
+  setHorseCanterMinutes={setHorseCanterMinutes}
   horseHayGiven={horseHayGiven}
   setHorseHayGiven={setHorseHayGiven}
   horseWaterChecked={horseWaterChecked}
@@ -1930,10 +2122,15 @@ historyFilterTextActive: {
     marginBottom: 10,
   },
   loginContainer: {
-  flex: 1,
+  flexGrow: 1,
   backgroundColor: '#0f0f10',
   padding: 24,
   justifyContent: 'center',
+},
+signupContainer: {
+  backgroundColor: '#ffffff',
+  justifyContent: 'flex-start',
+  paddingTop: 36,
 },
 loginTitle: {
   fontSize: 42,
@@ -1941,6 +2138,13 @@ loginTitle: {
   color: '#ffffff',
   marginBottom: 8,
   textAlign: 'center',
+},
+signupTitle: {
+  color: '#171717',
+  fontSize: 38,
+  textAlign: 'left',
+  marginTop: 24,
+  marginBottom: 30,
 },
 loginSubtitle: {
   fontSize: 18,
@@ -1953,6 +2157,93 @@ loginHint: {
   fontSize: 14,
   textAlign: 'center',
   marginTop: 12,
+},
+authModeRow: {
+  flexDirection: 'row',
+  gap: 10,
+  marginBottom: 18,
+},
+authModeButton: {
+  flex: 1,
+  borderColor: '#3a3a3d',
+  borderWidth: 1,
+  borderRadius: 12,
+  padding: 12,
+},
+authModeButtonActive: {
+  backgroundColor: '#4a4a4d',
+},
+authModeText: {
+  color: '#ffffff',
+  fontWeight: '800',
+  textAlign: 'center',
+},
+signupCancelButton: {
+  alignSelf: 'flex-start',
+  borderColor: '#d7d4cf',
+  borderWidth: 1,
+  borderRadius: 999,
+  paddingVertical: 10,
+  paddingHorizontal: 24,
+},
+signupCancelText: {
+  color: '#171717',
+  fontSize: 18,
+  fontWeight: '500',
+},
+signupLabel: {
+  color: '#6d6a6a',
+  fontSize: 18,
+  marginBottom: 8,
+},
+signupNameRow: {
+  flexDirection: 'row',
+  gap: 12,
+  marginBottom: 12,
+},
+signupNameInput: {
+  flex: 1,
+},
+signupInput: {
+  backgroundColor: '#efedf2',
+  color: '#171717',
+  borderRadius: 12,
+  marginBottom: 14,
+},
+signupHelp: {
+  color: '#686464',
+  fontSize: 14,
+  marginBottom: 22,
+},
+signupButton: {
+  backgroundColor: '#f26543',
+  borderRadius: 999,
+  marginBottom: 14,
+},
+signupLegal: {
+  color: '#686464',
+  fontSize: 14,
+  lineHeight: 20,
+  marginBottom: 16,
+},
+signupDivider: {
+  color: '#555252',
+  fontSize: 18,
+  textAlign: 'center',
+  marginBottom: 16,
+},
+socialButton: {
+  borderColor: '#9b9999',
+  borderWidth: 1,
+  borderRadius: 999,
+  padding: 15,
+  marginBottom: 12,
+},
+socialButtonText: {
+  color: '#555252',
+  fontSize: 18,
+  fontWeight: '700',
+  textAlign: 'center',
 },
 logoutButton: {
   backgroundColor: '#3a3a3d',

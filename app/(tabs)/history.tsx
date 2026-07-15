@@ -349,6 +349,10 @@ export default function HistoryScreen() {
           </Text>
 
           <Text style={styles.detailsText}>
+            Rider: {horse.riderName || 'Not filled'}
+          </Text>
+
+          <Text style={styles.detailsText}>
             Horse: {horse.horseName || 'Not filled'}
           </Text>
 
@@ -357,11 +361,35 @@ export default function HistoryScreen() {
           </Text>
 
           <Text style={styles.detailsText}>
+            Intensity: {horse.trainingIntensity || 'Not filled'}
+          </Text>
+
+          <Text style={styles.detailsText}>
+            Training Time: {horse.trainingTime || 'Not filled'}
+          </Text>
+
+          <Text style={styles.detailsText}>
             Rest Day: {horse.restDay ? 'Yes' : 'No'}
           </Text>
 
           <Text style={styles.detailsText}>
             Walking Minutes: {horse.walkingMinutes || '0'}
+          </Text>
+
+          <Text style={styles.detailsSectionTitle}>
+            Gait Tracking
+          </Text>
+
+          <Text style={styles.detailsText}>
+            Walk: {horse.walkMinutes || '0'} min
+          </Text>
+
+          <Text style={styles.detailsText}>
+            Trot: {horse.trotMinutes || '0'} min
+          </Text>
+
+          <Text style={styles.detailsText}>
+            Canter: {horse.canterMinutes || '0'} min
           </Text>
 
           <Text style={styles.detailsSectionTitle}>

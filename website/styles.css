@@ -182,6 +182,42 @@ p {
   padding: 20px;
 }
 
+.signup-cancel {
+  justify-self: start;
+  width: auto;
+  min-height: 44px;
+  padding: 8px 22px;
+  border: 1px solid #d7d4cf;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #111111;
+  font-weight: 500;
+}
+
+.auth-card.signup-mode {
+  max-width: 430px;
+  border: 0;
+  border-radius: 34px;
+  background: #ffffff;
+  color: #171717;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.38);
+}
+
+.auth-card.signup-mode .segmented,
+.auth-card.signup-mode #auth-description,
+.auth-card.signup-mode #passkey-button,
+.auth-card.signup-mode #forgot-button,
+.auth-card.signup-mode .security-note {
+  display: none;
+}
+
+.auth-card.signup-mode h2 {
+  margin: 18px 0 22px;
+  color: #171717;
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
 .segmented {
   display: flex;
   gap: 8px;
@@ -213,6 +249,7 @@ p {
 }
 
 .form-grid label,
+.name-block,
 .custom-activity label,
 .history-tools label {
   display: grid;
@@ -220,6 +257,19 @@ p {
   color: #d9dadd;
   font-size: 0.9rem;
   font-weight: 900;
+}
+
+.auth-card.signup-mode .form-grid label,
+.auth-card.signup-mode .name-block {
+  color: #6d6a6a;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.name-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 input,
@@ -232,6 +282,19 @@ textarea {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.08);
   color: var(--text);
+}
+
+.auth-card.signup-mode input {
+  min-height: 54px;
+  border: 0;
+  border-radius: 11px;
+  background: #efedf2;
+  color: #171717;
+  font-size: 1.02rem;
+}
+
+.auth-card.signup-mode input::placeholder {
+  color: #4c4a4a;
 }
 
 textarea {
@@ -257,6 +320,16 @@ textarea:focus {
 }
 
 .auth-card.signup-mode .signup-only {
+  display: grid;
+}
+
+.auth-card.signup-mode .signup-help,
+.auth-card.signup-mode .signup-legal,
+.auth-card.signup-mode .signup-divider {
+  display: block;
+}
+
+.auth-card.signup-mode .signup-social {
   display: grid;
 }
 
@@ -299,6 +372,15 @@ textarea:focus {
   color: #04100c;
 }
 
+.auth-card.signup-mode .button.primary {
+  min-height: 54px;
+  border: 0;
+  border-radius: 999px;
+  background: #f26543;
+  color: #ffffff;
+  font-size: 1.05rem;
+}
+
 .button.danger {
   border-color: rgba(255, 107, 107, 0.44);
   color: #ffd6d6;
@@ -309,6 +391,40 @@ textarea:focus {
   margin: 0;
   color: var(--green);
   font-size: 0.92rem;
+}
+
+.signup-help {
+  margin: 0;
+  color: #686464;
+  font-size: 0.88rem;
+}
+
+.signup-legal {
+  margin: 0;
+  color: #686464;
+  font-size: 0.9rem;
+}
+
+.signup-divider {
+  color: #555252;
+  text-align: center;
+}
+
+.signup-social {
+  gap: 10px;
+}
+
+.social-button {
+  min-height: 52px;
+  border: 1px solid #9b9999;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #555252;
+  font-weight: 700;
+}
+
+.auth-card.signup-mode .status-text {
+  color: #c74f34;
 }
 
 .recovery-card,
@@ -599,6 +715,7 @@ textarea:focus {
   .activity-section-grid,
   .field-grid,
   .history-details,
+  .name-row,
   .custom-activity {
     grid-template-columns: 1fr;
   }

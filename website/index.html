@@ -41,6 +41,10 @@
           </div>
 
           <div class="auth-card">
+            <button class="signup-cancel signup-only" id="signup-cancel-button" type="button">
+              Cancel
+            </button>
+
             <div class="segmented" role="tablist" aria-label="Account options">
               <button class="active" type="button" data-auth-mode="signin" id="signin-tab">Sign in</button>
               <button type="button" data-auth-mode="signup" id="signup-tab">Sign up</button>
@@ -50,10 +54,13 @@
             <p id="auth-description">Sign in to continue tracking on this device.</p>
 
             <form class="form-grid" id="auth-form">
-              <label class="signup-only">
-                <span id="full-name-label">Full name</span>
-                <input name="fullName" type="text" autocomplete="name" placeholder="Raian Abdullah" />
-              </label>
+              <div class="signup-only name-block">
+                <span id="name-label">Name</span>
+                <div class="name-row">
+                  <input name="firstName" type="text" autocomplete="given-name" placeholder="Raian" />
+                  <input name="lastName" type="text" autocomplete="family-name" placeholder="Abutaleb" />
+                </div>
+              </div>
               <label>
                 <span id="identifier-label">Email or phone</span>
                 <input name="identifier" type="text" autocomplete="username" placeholder="raian@example.com" required />
@@ -61,6 +68,10 @@
               <label>
                 <span id="password-label">Password</span>
                 <input id="auth-password" name="password" type="password" autocomplete="current-password" placeholder="Enter password" required />
+              </label>
+              <label class="signup-only">
+                <span id="repeat-password-label">Repeat password</span>
+                <input name="repeatPassword" type="password" autocomplete="new-password" placeholder="Repeat password" />
               </label>
               <label class="reset-only">
                 <span id="recovery-label">Recovery code</span>
@@ -70,17 +81,16 @@
                 <span id="new-password-label">New password</span>
                 <input name="newPassword" type="password" autocomplete="new-password" placeholder="Create a new password" />
               </label>
-              <label class="signup-only">
-                <span id="goal-label">Main goal</span>
-                <select name="goal">
-                  <option>Fitness</option>
-                  <option>Sports</option>
-                  <option>Horse Riding</option>
-                  <option>Vehicle Maintenance</option>
-                  <option>Study</option>
-                </select>
-              </label>
+              <p class="signup-help signup-only" id="password-minimum">Password must be at least 8 characters.</p>
               <button class="button primary" id="auth-submit" type="submit">Sign in</button>
+              <p class="signup-legal signup-only" id="signup-legal">
+                By creating an ActiveTrack account, you agree to save your data on this device. We never share your data.
+              </p>
+              <div class="signup-divider signup-only" id="signup-divider">Or</div>
+              <div class="signup-social signup-only">
+                <button class="social-button" id="apple-signup-button" type="button">Sign up with Apple</button>
+                <button class="social-button" id="facebook-signup-button" type="button">Sign up with Facebook</button>
+              </div>
               <button class="button secondary" id="passkey-button" type="button">Use Face ID / Passkey</button>
               <button class="link-button" id="forgot-button" type="button">Forgot username or password?</button>
               <p class="status-text" id="auth-message" role="status"></p>
