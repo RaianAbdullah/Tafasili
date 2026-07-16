@@ -37,6 +37,10 @@ body {
     linear-gradient(180deg, rgba(5, 5, 7, 0.28), rgba(5, 5, 7, 0.88)),
     url("assets/friesian-horse-bg.png") center center / cover no-repeat,
     #050507;
+  transform: scale(1.04);
+  transform-origin: 68% 58%;
+  animation: horseCinematicRun 18s ease-in-out infinite alternate;
+  will-change: transform, filter;
 }
 
 body::before {
@@ -45,11 +49,64 @@ body::before {
   inset: 0;
   z-index: -1;
   background:
-    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: linear-gradient(to bottom, black, transparent 85%);
+    radial-gradient(circle at 72% 54%, rgba(246, 193, 119, 0.12), transparent 18%),
+    radial-gradient(circle at 48% 88%, rgba(246, 193, 119, 0.08), transparent 24%),
+    linear-gradient(90deg, rgba(5, 5, 7, 0.52), transparent 68%);
   pointer-events: none;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: auto -10% -12% -10%;
+  z-index: -1;
+  height: 34vh;
+  background:
+    radial-gradient(circle at 20% 62%, rgba(246, 193, 119, 0.18) 0 2px, transparent 3px),
+    radial-gradient(circle at 42% 44%, rgba(246, 193, 119, 0.12) 0 1px, transparent 3px),
+    radial-gradient(circle at 58% 70%, rgba(246, 193, 119, 0.16) 0 2px, transparent 4px),
+    radial-gradient(circle at 78% 50%, rgba(246, 193, 119, 0.1) 0 1px, transparent 3px),
+    linear-gradient(90deg, transparent, rgba(246, 193, 119, 0.08), transparent);
+  background-size: 220px 120px, 260px 140px, 300px 150px, 240px 130px, 100% 100%;
+  filter: blur(1.8px);
+  opacity: 0.55;
+  animation: horseDustDrift 9s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes horseCinematicRun {
+  0% {
+    filter: brightness(0.9) contrast(1.04);
+    transform: scale(1.04) translate3d(0, 0, 0);
+  }
+
+  48% {
+    filter: brightness(1.02) contrast(1.1);
+    transform: scale(1.085) translate3d(-1.4%, -0.7%, 0);
+  }
+
+  100% {
+    filter: brightness(0.96) contrast(1.08);
+    transform: scale(1.065) translate3d(1.1%, 0.4%, 0);
+  }
+}
+
+@keyframes horseDustDrift {
+  0% {
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
+    opacity: 0.42;
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    opacity: 0.68;
+  }
+
+  100% {
+    background-position: -220px 0, -260px 0, -300px 0, -240px 0, 0 0;
+    opacity: 0.42;
+    transform: translate3d(-3%, -2%, 0);
+  }
 }
 
 button,
@@ -796,5 +853,12 @@ textarea:focus {
   .name-row,
   .custom-activity {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #activity-canvas,
+  body::after {
+    animation: none;
   }
 }
