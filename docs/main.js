@@ -233,6 +233,8 @@ const translations = {
 
 const lapActivities = ['Run', 'Walking', 'Cycling', 'Swimming'];
 const matchActivities = ['Padel', 'Tennis'];
+const balootDealerDirections = ['↑', '→', '↓', '←'];
+const gymWorkoutDays = ['Chest', 'Back', 'Legs', 'Shoulder', 'Arms', 'Abs', 'Rest'];
 const views = {
   auth: document.querySelector('#auth-view'),
   home: document.querySelector('#home-view'),
@@ -251,6 +253,10 @@ const state = {
   language: localStorage.getItem(storageKeys.language) || 'en',
   sessions: readJson(storageKeys.sessions, []),
   customActivities: readJson(storageKeys.customActivities, []),
+  currentGymSets: [],
+  gymExercises: [],
+  balootScores: [],
+  balootDealerDirection: '↑',
 };
 
 const authCard = document.querySelector('.auth-card');
@@ -303,12 +309,141 @@ function activityHelper(activity) {
   return translations[state.language].helpers[activity] || translations[state.language].helpers.default;
 }
 
+function balootText(key) {
+  const labels = {
+    en: {
+      title: 'Baloot Calculator',
+      subtitle: 'First side to 152 wins',
+      us: 'Us',
+      them: 'Them',
+      winner: 'Winner',
+      dealerDirection: 'Dealer Direction',
+      dealerHint: 'Tap to change dealer',
+      addHandScore: 'Add hand score',
+      usScore: 'Us score',
+      themScore: 'Them score',
+      addScore: '+ Add Score',
+      deleteLast: 'Delete Last Score',
+      reset: 'Reset Baloot Scores',
+      scoreHistory: 'Score History',
+      noScores: 'No scores added yet',
+      noScoreToDelete: 'No score to delete',
+      scoresMustBeNumbers: 'Scores must be numbers',
+      scoresCannotBeNegative: 'Scores cannot be negative',
+      enterUs: 'Please enter Us score',
+      enterThem: 'Please enter Them score',
+      hand: 'Hand',
+      notFinished: 'Not finished yet',
+      tie: 'Tie - play one more hand',
+      won: (winner) => `${winner} reached 152 and won.`,
+    },
+    ar: {
+      title: 'حاسبة البلوت',
+      subtitle: 'أول فريق يصل إلى 152 يفوز',
+      us: 'لنا',
+      them: 'لهم',
+      winner: 'الفائز',
+      dealerDirection: 'اتجاه الموزع',
+      dealerHint: 'اضغط لتغيير الموزع',
+      addHandScore: 'إضافة نقاط الجولة',
+      usScore: 'نقاط لنا',
+      themScore: 'نقاط لهم',
+      addScore: '+ إضافة النقاط',
+      deleteLast: 'حذف آخر نتيجة',
+      reset: 'إعادة تعيين نقاط البلوت',
+      scoreHistory: 'سجل النقاط',
+      noScores: 'لم تتم إضافة نقاط بعد',
+      noScoreToDelete: 'لا توجد نتيجة للحذف',
+      scoresMustBeNumbers: 'يجب أن تكون النقاط أرقاماً',
+      scoresCannotBeNegative: 'لا يمكن أن تكون النقاط سالبة',
+      enterUs: 'أدخل نقاط لنا',
+      enterThem: 'أدخل نقاط لهم',
+      hand: 'جولة',
+      notFinished: 'لم تنته بعد',
+      tie: 'تعادل - العب جولة إضافية',
+      won: (winner) => `${winner} وصل إلى 152 وفاز.`,
+    },
+  };
+
+  return labels[state.language][key] || labels.en[key] || key;
+}
+
+function gymText(key) {
+  const labels = {
+    en: {
+      title: 'Gym Workout',
+      chooseWorkoutDay: 'Choose workout day',
+      currentExercise: 'Current Exercise',
+      exerciseName: 'Exercise name',
+      exercisePlaceholder: 'Exercise name, example: Bench Press',
+      setReps: 'Set reps',
+      set: 'Set',
+      setsForThisExercise: 'Sets for This Exercise',
+      saveExercise: 'Save Exercise',
+      exercisesAdded: 'Exercises Added',
+      noSets: 'No sets added yet',
+      noExercises: 'No exercises saved yet',
+      enterReps: 'Please enter reps for this set',
+      enterExerciseName: 'Please enter exercise name',
+      addSetFirst: 'Please add at least one set',
+      workoutDay: 'Workout Day',
+      exercises: 'Exercises',
+      reps: 'reps',
+      Chest: 'Chest',
+      Back: 'Back',
+      Legs: 'Legs',
+      Shoulder: 'Shoulder',
+      Arms: 'Arms',
+      Abs: 'Abs',
+      Rest: 'Rest',
+    },
+    ar: {
+      title: 'تمرين النادي',
+      chooseWorkoutDay: 'اختر يوم التمرين',
+      currentExercise: 'التمرين الحالي',
+      exerciseName: 'اسم التمرين',
+      exercisePlaceholder: 'اسم التمرين، مثال: Bench Press',
+      setReps: 'تكرارات المجموعة',
+      set: 'مجموعة',
+      setsForThisExercise: 'المجموعات لهذا التمرين',
+      saveExercise: 'حفظ التمرين',
+      exercisesAdded: 'التمارين المضافة',
+      noSets: 'لم تتم إضافة مجموعات بعد',
+      noExercises: 'لم يتم حفظ تمارين بعد',
+      enterReps: 'أدخل تكرارات هذه المجموعة',
+      enterExerciseName: 'أدخل اسم التمرين',
+      addSetFirst: 'أضف مجموعة واحدة على الأقل',
+      workoutDay: 'يوم التمرين',
+      exercises: 'التمارين',
+      reps: 'تكرارات',
+      Chest: 'صدر',
+      Back: 'ظهر',
+      Legs: 'أرجل',
+      Shoulder: 'أكتاف',
+      Arms: 'ذراع',
+      Abs: 'بطن',
+      Rest: 'راحة',
+    },
+  };
+
+  return labels[state.language][key] || labels.en[key] || key;
+}
+
 function setText(selector, value) {
   const element = document.querySelector(selector);
 
   if (element) {
     element.textContent = value;
   }
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function applyLanguage() {
@@ -655,7 +790,21 @@ function openTracker(activity) {
   trackerView.classList.toggle('vehicle-mode', activity === 'Vehicle Maintenance');
   activityFields.innerHTML = getFieldsForActivity(activity);
   bindConditionalFields();
+  if (activity === 'Gym') {
+    resetGymState();
+    bindGymWorkoutBuilder();
+  }
+  if (activity === 'Baloot') {
+    resetBalootState();
+    bindBalootCalculator();
+  }
   sessionForm.reset();
+  if (activity === 'Gym') {
+    renderGymWorkoutBuilder();
+  }
+  if (activity === 'Baloot') {
+    renderBalootCalculator();
+  }
   showView('tracker');
 }
 
@@ -670,10 +819,47 @@ function getFieldsForActivity(activity) {
   }
 
   if (activity === 'Gym') {
-    return fieldGrid([
-      selectField('Workout day', 'gymWorkoutDay', ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Abs', 'Rest']),
-      textAreaField('Exercises', 'gymExercises', 'Bench press - 3 sets x 10 reps', true),
-    ]);
+    return `
+      <div class="gym-workout-builder">
+        <header>
+          <h2>${gymText('title')}</h2>
+          <p>${gymText('chooseWorkoutDay')}</p>
+        </header>
+
+        <input id="gym-workout-day" name="gymWorkoutDay" type="hidden" value="" />
+        <div class="workout-grid" id="gym-workout-grid">
+          ${gymWorkoutDays
+            .map(
+              (day) => `
+                <button class="workout-button" type="button" data-gym-day="${day}">
+                  ${gymText(day)}
+                </button>
+              `
+            )
+            .join('')}
+        </div>
+
+        <h2 class="gym-section-title">${gymText('currentExercise')}</h2>
+        ${inputField(gymText('exerciseName'), 'gymExerciseName', gymText('exercisePlaceholder'))}
+
+        <div class="gym-set-row">
+          ${inputField(gymText('setReps'), 'gymSetReps', gymText('setReps'), 'number')}
+          <button class="button secondary" id="gym-add-set" type="button">+ ${gymText('set')}</button>
+        </div>
+
+        <div class="gym-list-box">
+          <h2>${gymText('setsForThisExercise')}</h2>
+          <div id="gym-current-set-list" class="gym-entry-list"></div>
+        </div>
+
+        <button class="button secondary" id="gym-save-exercise" type="button">${gymText('saveExercise')}</button>
+
+        <div class="gym-list-box">
+          <h2>${gymText('exercisesAdded')}</h2>
+          <div id="gym-exercise-list" class="gym-entry-list"></div>
+        </div>
+      </div>
+    `;
   }
 
   if (lapActivities.includes(activity)) {
@@ -696,12 +882,55 @@ function getFieldsForActivity(activity) {
   }
 
   if (activity === 'Baloot') {
-    return fieldGrid([
-      inputField('US score', 'balootUsTotal', '152', 'number'),
-      inputField('THEM score', 'balootThemTotal', '120', 'number'),
-      selectField('Dealer direction', 'balootDealerDirection', ['Up', 'Right', 'Down', 'Left']),
-      textAreaField('Score notes', 'balootScores', 'Add score rounds here', true),
-    ]);
+    return `
+      <div class="baloot-calculator">
+        <header>
+          <div>
+            <h2>${balootText('title')}</h2>
+            <p>${balootText('subtitle')}</p>
+          </div>
+        </header>
+
+        <div class="baloot-total-box">
+          <div class="baloot-total-card">
+            <span>${balootText('us')}</span>
+            <strong id="baloot-us-total">0</strong>
+          </div>
+          <div class="baloot-total-card">
+            <span>${balootText('them')}</span>
+            <strong id="baloot-them-total">0</strong>
+          </div>
+        </div>
+
+        <div class="baloot-winner-box">
+          <span>${balootText('winner')}</span>
+          <strong id="baloot-winner">Not finished yet</strong>
+        </div>
+
+        <button class="baloot-dealer-box" id="baloot-dealer-button" type="button">
+          <span>${balootText('dealerDirection')}</span>
+          <strong id="baloot-dealer-direction">↑</strong>
+          <small>${balootText('dealerHint')}</small>
+        </button>
+
+        <h2 class="baloot-section-title">${balootText('addHandScore')}</h2>
+        <div class="field-grid">
+          ${inputField(balootText('usScore'), 'balootUsScore', balootText('us'), 'number')}
+          ${inputField(balootText('themScore'), 'balootThemScore', balootText('them'), 'number')}
+        </div>
+
+        <div class="button-row baloot-actions">
+          <button class="button secondary" id="baloot-add-score" type="button">${balootText('addScore')}</button>
+          <button class="button secondary" id="baloot-delete-last" type="button">${balootText('deleteLast')}</button>
+          <button class="button danger" id="baloot-reset" type="button">${balootText('reset')}</button>
+        </div>
+
+        <div class="baloot-score-history">
+          <h2>${balootText('scoreHistory')}</h2>
+          <div id="baloot-score-list" class="baloot-score-list"></div>
+        </div>
+      </div>
+    `;
   }
 
   if (activity === 'Horse Riding') {
@@ -854,6 +1083,293 @@ function bindConditionalFields() {
 
     control.addEventListener('change', updateVisibility);
     updateVisibility();
+  });
+}
+
+function resetGymState() {
+  state.currentGymSets = [];
+  state.gymExercises = [];
+}
+
+function bindGymWorkoutBuilder() {
+  document.querySelectorAll('[data-gym-day]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const dayInput = document.querySelector('#gym-workout-day');
+      dayInput.value = button.dataset.gymDay;
+      renderGymWorkoutBuilder();
+    });
+  });
+  document.querySelector('#gym-add-set')?.addEventListener('click', addGymSet);
+  document.querySelector('#gym-save-exercise')?.addEventListener('click', saveGymExercise);
+}
+
+function addGymSet() {
+  const repsInput = sessionForm.querySelector('[name="gymSetReps"]');
+  const cleanReps = repsInput.value.trim();
+
+  if (cleanReps === '') {
+    sessionMessage.textContent = gymText('enterReps');
+    return;
+  }
+
+  state.currentGymSets = [
+    ...state.currentGymSets,
+    {
+      id: Date.now(),
+      reps: cleanReps,
+    },
+  ];
+  repsInput.value = '';
+  sessionMessage.textContent = '';
+  renderGymWorkoutBuilder();
+}
+
+function deleteCurrentGymSet(setId) {
+  state.currentGymSets = state.currentGymSets.filter((set) => set.id !== setId);
+  renderGymWorkoutBuilder();
+}
+
+function saveGymExercise() {
+  const exerciseInput = sessionForm.querySelector('[name="gymExerciseName"]');
+  const repsInput = sessionForm.querySelector('[name="gymSetReps"]');
+  const cleanExerciseName = exerciseInput.value.trim();
+
+  if (cleanExerciseName === '') {
+    sessionMessage.textContent = gymText('enterExerciseName');
+    return;
+  }
+
+  if (state.currentGymSets.length === 0) {
+    sessionMessage.textContent = gymText('addSetFirst');
+    return;
+  }
+
+  state.gymExercises = [
+    ...state.gymExercises,
+    {
+      id: Date.now(),
+      name: cleanExerciseName,
+      sets: state.currentGymSets,
+    },
+  ];
+  state.currentGymSets = [];
+  exerciseInput.value = '';
+  repsInput.value = '';
+  sessionMessage.textContent = '';
+  renderGymWorkoutBuilder();
+}
+
+function deleteGymExercise(exerciseId) {
+  state.gymExercises = state.gymExercises.filter((exercise) => exercise.id !== exerciseId);
+  renderGymWorkoutBuilder();
+}
+
+function renderGymWorkoutBuilder() {
+  const selectedDay = document.querySelector('#gym-workout-day')?.value || '';
+  const currentSetList = document.querySelector('#gym-current-set-list');
+  const exerciseList = document.querySelector('#gym-exercise-list');
+
+  document.querySelectorAll('[data-gym-day]').forEach((button) => {
+    button.classList.toggle('selected', button.dataset.gymDay === selectedDay);
+  });
+
+  if (currentSetList) {
+    currentSetList.innerHTML =
+      state.currentGymSets.length === 0
+        ? `<div class="empty-state">${gymText('noSets')}</div>`
+        : state.currentGymSets
+            .map(
+              (set, index) => `
+                <div class="gym-entry-row">
+                  <span>${gymText('set')} ${index + 1}: ${escapeHtml(set.reps)} ${gymText('reps')}</span>
+                  <button class="icon-button" type="button" data-delete-gym-set="${set.id}">X</button>
+                </div>
+              `
+            )
+            .join('');
+
+    currentSetList.querySelectorAll('[data-delete-gym-set]').forEach((button) => {
+      button.addEventListener('click', () => deleteCurrentGymSet(Number(button.dataset.deleteGymSet)));
+    });
+  }
+
+  if (exerciseList) {
+    exerciseList.innerHTML =
+      state.gymExercises.length === 0
+        ? `<div class="empty-state">${gymText('noExercises')}</div>`
+        : state.gymExercises
+            .map(
+              (exercise, index) => `
+                <div class="gym-entry-row">
+                  <span>
+                    <strong>${index + 1}. ${escapeHtml(exercise.name)}</strong>
+                    ${exercise.sets
+                      .map((set, setIndex) => `<small>${gymText('set')} ${setIndex + 1}: ${escapeHtml(set.reps)} ${gymText('reps')}</small>`)
+                      .join('')}
+                  </span>
+                  <button class="icon-button" type="button" data-delete-gym-exercise="${exercise.id}">X</button>
+                </div>
+              `
+            )
+            .join('');
+
+    exerciseList.querySelectorAll('[data-delete-gym-exercise]').forEach((button) => {
+      button.addEventListener('click', () => deleteGymExercise(Number(button.dataset.deleteGymExercise)));
+    });
+  }
+}
+
+function resetBalootState() {
+  state.balootScores = [];
+  state.balootDealerDirection = '↑';
+}
+
+function getBalootUsTotalFromScores(scores) {
+  return scores.reduce((total, score) => total + Number(score.us || 0), 0);
+}
+
+function getBalootThemTotalFromScores(scores) {
+  return scores.reduce((total, score) => total + Number(score.them || 0), 0);
+}
+
+function getBalootWinner(usTotal, themTotal) {
+  if (usTotal >= 152 && usTotal > themTotal) {
+    return balootText('us');
+  }
+
+  if (themTotal >= 152 && themTotal > usTotal) {
+    return balootText('them');
+  }
+
+  if (usTotal >= 152 && themTotal >= 152 && usTotal === themTotal) {
+    return balootText('tie');
+  }
+
+  return balootText('notFinished');
+}
+
+function bindBalootCalculator() {
+  document.querySelector('#baloot-add-score')?.addEventListener('click', addBalootScore);
+  document.querySelector('#baloot-delete-last')?.addEventListener('click', deleteLastBalootScore);
+  document.querySelector('#baloot-reset')?.addEventListener('click', resetBalootScores);
+  document.querySelector('#baloot-dealer-button')?.addEventListener('click', changeBalootDealerDirection);
+}
+
+function addBalootScore() {
+  const usInput = sessionForm.querySelector('[name="balootUsScore"]');
+  const themInput = sessionForm.querySelector('[name="balootThemScore"]');
+  const cleanUsScore = usInput.value.trim();
+  const cleanThemScore = themInput.value.trim();
+
+  if (cleanUsScore === '') {
+    sessionMessage.textContent = balootText('enterUs');
+    return;
+  }
+
+  if (cleanThemScore === '') {
+    sessionMessage.textContent = balootText('enterThem');
+    return;
+  }
+
+  const usNumber = Number(cleanUsScore);
+  const themNumber = Number(cleanThemScore);
+
+  if (Number.isNaN(usNumber) || Number.isNaN(themNumber)) {
+    sessionMessage.textContent = balootText('scoresMustBeNumbers');
+    return;
+  }
+
+  if (usNumber < 0 || themNumber < 0) {
+    sessionMessage.textContent = balootText('scoresCannotBeNegative');
+    return;
+  }
+
+  state.balootScores = [
+    ...state.balootScores,
+    {
+      id: Date.now(),
+      us: cleanUsScore,
+      them: cleanThemScore,
+    },
+  ];
+  usInput.value = '';
+  themInput.value = '';
+  sessionMessage.textContent = '';
+  renderBalootCalculator();
+
+  const winner = getBalootWinner(
+    getBalootUsTotalFromScores(state.balootScores),
+    getBalootThemTotalFromScores(state.balootScores)
+  );
+
+  if (winner === balootText('us') || winner === balootText('them')) {
+    sessionMessage.textContent = balootText('won')(winner);
+  }
+}
+
+function deleteBalootScore(scoreId) {
+  state.balootScores = state.balootScores.filter((score) => score.id !== scoreId);
+  renderBalootCalculator();
+}
+
+function deleteLastBalootScore() {
+  if (state.balootScores.length === 0) {
+    sessionMessage.textContent = balootText('noScoreToDelete');
+    return;
+  }
+
+  state.balootScores = state.balootScores.slice(0, -1);
+  sessionMessage.textContent = '';
+  renderBalootCalculator();
+}
+
+function resetBalootScores() {
+  resetBalootState();
+  sessionForm.querySelector('[name="balootUsScore"]').value = '';
+  sessionForm.querySelector('[name="balootThemScore"]').value = '';
+  sessionMessage.textContent = '';
+  renderBalootCalculator();
+}
+
+function changeBalootDealerDirection() {
+  const currentIndex = balootDealerDirections.indexOf(state.balootDealerDirection);
+  const nextIndex = (currentIndex + 1) % balootDealerDirections.length;
+  state.balootDealerDirection = balootDealerDirections[nextIndex];
+  renderBalootCalculator();
+}
+
+function renderBalootCalculator() {
+  const usTotal = getBalootUsTotalFromScores(state.balootScores);
+  const themTotal = getBalootThemTotalFromScores(state.balootScores);
+  const scoreList = document.querySelector('#baloot-score-list');
+
+  setText('#baloot-us-total', usTotal);
+  setText('#baloot-them-total', themTotal);
+  setText('#baloot-winner', getBalootWinner(usTotal, themTotal));
+  setText('#baloot-dealer-direction', state.balootDealerDirection);
+
+  if (!scoreList) {
+    return;
+  }
+
+  if (state.balootScores.length === 0) {
+    scoreList.innerHTML = `<div class="empty-state">${balootText('noScores')}</div>`;
+    return;
+  }
+
+  scoreList.innerHTML = state.balootScores
+    .map(
+      (score, index) => `
+        <div class="baloot-score-row">
+          <span>${balootText('hand')} ${index + 1}: ${balootText('us')} ${escapeHtml(score.us)} - ${balootText('them')} ${escapeHtml(score.them)}</span>
+          <button class="icon-button" type="button" data-delete-baloot-score="${score.id}">X</button>
+        </div>
+      `
+    )
+    .join('');
+
+  scoreList.querySelectorAll('[data-delete-baloot-score]').forEach((button) => {
+    button.addEventListener('click', () => deleteBalootScore(Number(button.dataset.deleteBalootScore)));
   });
 }
 
@@ -1038,6 +1554,11 @@ function saveSession(event) {
     stopTimer();
   }
 
+  if (activity === 'Gym' && !sessionForm.querySelector('[name="gymWorkoutDay"]').value) {
+    sessionMessage.textContent = gymText('chooseWorkoutDay');
+    return;
+  }
+
   const details = getSessionDetails();
   const durationSeconds = isVehicle ? 0 : Math.floor((state.endTime - state.startTime) / 1000);
   const now = new Date();
@@ -1061,6 +1582,53 @@ function saveSession(event) {
 }
 
 function getSessionDetails() {
+  if (state.selectedActivity === 'Gym') {
+    const workoutDay = sessionForm.querySelector('[name="gymWorkoutDay"]').value;
+    const exerciseName = sessionForm.querySelector('[name="gymExerciseName"]').value.trim();
+    const gymExercises =
+      exerciseName !== '' && state.currentGymSets.length > 0
+        ? [
+            ...state.gymExercises,
+            {
+              id: Date.now(),
+              name: exerciseName,
+              sets: state.currentGymSets,
+            },
+          ]
+        : state.gymExercises;
+
+    return {
+      gymWorkoutDay: workoutDay,
+      gymExercises,
+    };
+  }
+
+  if (state.selectedActivity === 'Baloot') {
+    const cleanUsScore = sessionForm.querySelector('[name="balootUsScore"]').value.trim();
+    const cleanThemScore = sessionForm.querySelector('[name="balootThemScore"]').value.trim();
+    const balootScores =
+      cleanUsScore !== '' && cleanThemScore !== ''
+        ? [
+            ...state.balootScores,
+            {
+              id: Date.now(),
+              us: cleanUsScore,
+              them: cleanThemScore,
+            },
+          ]
+        : state.balootScores;
+    const usTotal = getBalootUsTotalFromScores(balootScores);
+    const themTotal = getBalootThemTotalFromScores(balootScores);
+
+    return {
+      balootScores,
+      balootUsTotal: usTotal,
+      balootThemTotal: themTotal,
+      balootWinner: getBalootWinner(usTotal, themTotal),
+      balootDealerDirection: state.balootDealerDirection,
+    };
+  }
+
   const details = {};
 
   sessionForm.querySelectorAll('input, select, textarea').forEach((field) => {
@@ -1102,10 +1670,7 @@ function renderHistory() {
 
   historyList.innerHTML = filteredSessions
     .map((session) => {
-      const details = Object.entries(session.details || {})
-        .filter(([, value]) => String(value).trim() !== '')
-        .map(([key, value]) => `<div><span>${labelFromKey(key)}</span>${value}</div>`)
-        .join('');
+      const details = renderSessionDetails(session);
 
       return `
         <article class="history-card">
@@ -1126,6 +1691,78 @@ function renderHistory() {
       `;
     })
     .join('');
+}
+
+function renderSessionDetails(session) {
+  if (session.activity === 'Gym' && session.details) {
+    const exercises = Array.isArray(session.details.gymExercises) ? session.details.gymExercises : [];
+    const exerciseDetails = exercises.length
+      ? exercises
+          .map(
+            (exercise, index) => `
+              <div>
+                <span>${index + 1}. ${escapeHtml(exercise.name)}</span>
+                ${exercise.sets
+                  .map((set, setIndex) => `${gymText('set')} ${setIndex + 1}: ${escapeHtml(set.reps)} ${gymText('reps')}`)
+                  .join('<br>')}
+              </div>
+            `
+          )
+          .join('')
+      : `<div><span>${gymText('exercises')}</span>${gymText('noExercises')}</div>`;
+
+    return `
+      <div><span>${gymText('workoutDay')}</span>${session.details.gymWorkoutDay || text('noDetails')}</div>
+      ${exerciseDetails}
+    `;
+  }
+
+  if (session.activity === 'Baloot' && session.details) {
+    const scores = Array.isArray(session.details.balootScores) ? session.details.balootScores : [];
+    const handDetails = scores.length
+      ? scores
+          .map(
+            (score, index) =>
+              `<div><span>${balootText('hand')} ${index + 1}</span>${balootText('us')} ${escapeHtml(score.us)} - ${balootText('them')} ${escapeHtml(score.them)}</div>`
+          )
+          .join('')
+      : `<div><span>${balootText('scoreHistory')}</span>${balootText('noScores')}</div>`;
+
+    return `
+      <div><span>${balootText('us')}</span>${session.details.balootUsTotal || 0}</div>
+      <div><span>${balootText('them')}</span>${session.details.balootThemTotal || 0}</div>
+      <div><span>${balootText('winner')}</span>${session.details.balootWinner || balootText('notFinished')}</div>
+      <div><span>${balootText('dealerDirection')}</span>${session.details.balootDealerDirection || '↑'}</div>
+      ${handDetails}
+    `;
+  }
+
+  return Object.entries(session.details || {})
+    .filter(([, value]) => String(value).trim() !== '')
+    .map(([key, value]) => `<div><span>${labelFromKey(key)}</span>${formatDetailValue(value)}</div>`)
+    .join('');
+}
+
+function formatDetailValue(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map((item, index) => {
+        if (typeof item === 'object' && item !== null) {
+          return `${index + 1}. ${Object.values(item).join(' - ')}`;
+        }
+
+        return String(item);
+      })
+      .join('<br>');
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    return Object.entries(value)
+      .map(([key, itemValue]) => `${labelFromKey(key)}: ${itemValue}`)
+      .join('<br>');
+  }
+
+  return value;
 }
 
 function labelFromKey(key) {

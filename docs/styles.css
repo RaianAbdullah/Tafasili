@@ -33,9 +33,10 @@ body {
   width: 100%;
   height: 100%;
   background:
-    radial-gradient(circle at 16% 18%, rgba(88, 166, 255, 0.18), transparent 30%),
-    radial-gradient(circle at 84% 10%, rgba(110, 231, 183, 0.15), transparent 28%),
-    linear-gradient(145deg, #050507 0%, #0e1015 54%, #050507 100%);
+    linear-gradient(90deg, rgba(5, 5, 7, 0.92) 0%, rgba(5, 5, 7, 0.74) 42%, rgba(5, 5, 7, 0.48) 100%),
+    linear-gradient(180deg, rgba(5, 5, 7, 0.28), rgba(5, 5, 7, 0.88)),
+    url("assets/friesian-horse-bg.png") center center / cover no-repeat,
+    #050507;
 }
 
 body::before {
@@ -541,6 +542,180 @@ textarea:focus {
   display: none;
 }
 
+.gym-workout-builder {
+  display: grid;
+  gap: 16px;
+}
+
+.gym-workout-builder header p,
+.gym-section-title {
+  margin: 0;
+  color: var(--muted);
+}
+
+.workout-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.workout-button {
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font-weight: 900;
+}
+
+.workout-button.selected {
+  border-color: rgba(110, 231, 183, 0.42);
+  background: var(--green);
+  color: #04100c;
+}
+
+.gym-set-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.gym-list-box {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.gym-list-box h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.1rem;
+}
+
+.gym-entry-list {
+  display: grid;
+  gap: 8px;
+}
+
+.gym-entry-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.gym-entry-row:last-child {
+  border-bottom: 0;
+}
+
+.gym-entry-row span {
+  display: grid;
+  gap: 4px;
+}
+
+.gym-entry-row small {
+  color: var(--muted);
+}
+
+.baloot-calculator {
+  display: grid;
+  gap: 16px;
+}
+
+.baloot-calculator header p,
+.baloot-section-title {
+  margin: 0;
+  color: var(--muted);
+}
+
+.baloot-total-box {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.baloot-total-card,
+.baloot-winner-box,
+.baloot-dealer-box,
+.baloot-score-history {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.baloot-total-card {
+  text-align: center;
+}
+
+.baloot-total-card span,
+.baloot-winner-box span,
+.baloot-dealer-box span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.baloot-total-card strong {
+  font-size: 2.6rem;
+  line-height: 1;
+}
+
+.baloot-winner-box strong {
+  font-size: 1.25rem;
+}
+
+.baloot-dealer-box {
+  width: 100%;
+  color: var(--text);
+  text-align: center;
+}
+
+.baloot-dealer-box strong {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.baloot-dealer-box small {
+  color: var(--muted);
+}
+
+.baloot-actions {
+  margin-top: -2px;
+}
+
+.baloot-score-history h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.1rem;
+}
+
+.baloot-score-list {
+  display: grid;
+  gap: 8px;
+}
+
+.baloot-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.baloot-score-row:last-child {
+  border-bottom: 0;
+}
+
 .history-tools {
   padding: 16px;
   margin-bottom: 16px;
@@ -616,6 +791,8 @@ textarea:focus {
   .activity-section-grid,
   .field-grid,
   .history-details,
+  .gym-set-row,
+  .baloot-total-box,
   .name-row,
   .custom-activity {
     grid-template-columns: 1fr;
