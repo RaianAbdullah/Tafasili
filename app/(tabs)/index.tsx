@@ -24,6 +24,7 @@ import LapTracker from '../../components/LapTracker';
 import MatchTracker from '../../components/MatchTracker';
 import {
   getSupabaseSession,
+  sendPasswordReset,
   signInWithSupabase,
   signOutFromSupabase,
   signUpWithSupabase,
@@ -505,6 +506,23 @@ const signup = async () => {
     setIsLoggedIn(true);
   } catch (error) {
     alert(authErrorMessage(error, isArabic, 'signup'));
+  }
+};
+const forgotPassword = async () => {
+  const email = loginUsername.trim();
+
+  if (!email.includes('@')) {
+    alert(isArabic ? 'أدخل بريدك الإلكتروني أولاً.' : 'Enter your email address first.');
+    return;
+  }
+
+  try {
+    await sendPasswordReset(email);
+    alert(isArabic
+      ? 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.'
+      : 'Password reset instructions were sent to your email.');
+  } catch (error) {
+    alert(authErrorMessage(error, isArabic, 'signin'));
   }
 };
 const logout = async () => {
@@ -2356,6 +2374,14 @@ const getGroupedActivities = () => {
           </Text>
         </TouchableOpacity>
 
+        {!isSignupMode && (
+          <TouchableOpacity style={styles.forgotPasswordButton} onPress={forgotPassword}>
+            <Text style={styles.forgotPasswordText}>
+              {isArabic ? 'نسيت كلمة المرور؟' : 'Forgot password?'}
+            </Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
           style={styles.secondaryAuthButton}
           onPress={() => alert('Face ID / passkey can be connected later')}
@@ -4013,6 +4039,17 @@ authModeText: {
   color: '#050505',
   fontWeight: '800',
   textAlign: 'center',
+},
+forgotPasswordButton: {
+  alignSelf: 'center',
+  paddingHorizontal: 12,
+  paddingVertical: 10,
+},
+forgotPasswordText: {
+  color: '#050505',
+  fontSize: 18,
+  fontWeight: '700',
+  textDecorationLine: 'underline',
 },
 authSubmitButton: {
   backgroundColor: '#E7E9EE',

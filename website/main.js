@@ -9,6 +9,9 @@ const storageKeys = {
 };
 const passwordIterations = 210000;
 const cloudConfig = window.TAFASILI_SUPABASE;
+const passwordRecoveryRequestedAtLoad =
+  new URLSearchParams(window.location.hash.slice(1)).get('type') === 'recovery' ||
+  new URLSearchParams(window.location.search).get('type') === 'recovery';
 const cloudClient = window.supabase && cloudConfig
   ? window.supabase.createClient(cloudConfig.url, cloudConfig.publishableKey, {
       auth: {
@@ -290,7 +293,7 @@ const views = {
 
 const state = {
   authMode: 'signin',
-  passwordRecovery: false,
+  passwordRecovery: passwordRecoveryRequestedAtLoad,
   currentView: 'auth',
   previousView: null,
   userId: null,
@@ -3552,6 +3555,6 @@ cloudClient?.auth.onAuthStateChange((event) => {
   }
 });
 
-setAuthMode(window.location.hash.includes('type=recovery') ? 'recovery' : 'signin');
+setAuthMode(passwordRecoveryRequestedAtLoad ? 'recovery' : 'signin');
 applyLanguage();
 void initializeCloudAccount();
