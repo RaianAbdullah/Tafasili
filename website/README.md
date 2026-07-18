@@ -1,11 +1,11 @@
-# ActiveTrack Website
+# Tafasili Website
 
-This is a separate local-first website for ActiveTrack. It does not change the
+This is a separate local-first website for Tafasili. It does not change the
 Expo mobile app.
 
 ## Run It
 
-From the ActiveTrack project folder, run:
+From the Tafasili project folder, run:
 
 ```bash
 npm run website

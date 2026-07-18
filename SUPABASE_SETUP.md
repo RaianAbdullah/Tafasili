@@ -1,6 +1,6 @@
-# ActiveTrack Supabase Setup
+# Tafasili Supabase Setup
 
-Supabase gives ActiveTrack a real cloud database for accounts and saved history.
+Supabase gives Tafasili a real cloud database for accounts and saved history.
 
 ## 1. Create the Supabase project
 

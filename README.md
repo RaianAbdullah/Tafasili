@@ -1,6 +1,6 @@
-# ActiveTrack
+# Tafasili
 
-ActiveTrack is a personal activity tracker for sports, training, horse riding, studying, games, work, and vehicle maintenance.
+Tafasili is a personal activity and life-record tracker for sports, training, horse riding, studying, games, work, vehicle maintenance, reminders, and important personal information.
 
 The project includes:
 

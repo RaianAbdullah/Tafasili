@@ -63,6 +63,6 @@ server.on('error', (error) => {
 });
 
 server.listen(port, host, () => {
-  console.log(`ActiveTrack website running at http://localhost:${port}`);
+  console.log(`Tafasili website running at http://localhost:${port}`);
   console.log('Press Ctrl+C to stop the website server.');
 });

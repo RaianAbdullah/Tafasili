@@ -1,4 +1,4 @@
-# ActiveTrack - Codex Project Instructions
+# Tafasili - Codex Project Instructions
 
 ## Project Owner
 
@@ -22,7 +22,7 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v54.0.0/ before 
 
 ## Project Overview
 
-ActiveTrack is a personal activity tracking mobile application built with React Native and Expo.
+Tafasili is a personal activity and life-record tracking application built with React Native and Expo.
 
 The intended platforms are:
 
@@ -92,7 +92,7 @@ There was previously a problem where the Home tab was not visible. Verify the ta
 
 ## Current Activities
 
-ActiveTrack currently includes or plans to include:
+Tafasili currently includes or plans to include:
 
 - Football
 - Gym
@@ -299,7 +299,7 @@ The current priority is to complete a stable Demo v1 within a very limited timef
 6. Avoid major redesigns.
 7. Commit the stable version with a clear Git message such as:
 
-`ActiveTrack Demo v1 stable`
+`Tafasili Demo v1 stable`
 
 ### Day 2 - App Identity and Build Preparation
 

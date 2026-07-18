@@ -141,7 +141,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.mainContainer}>
       <ScrollView style={styles.container}>
-        <Text style={styles.title}>ActiveTrack</Text>
+        <Text style={styles.title}>Tafasili</Text>
         <Text style={styles.subtitle}>Choose your activity</Text>
 
         <View style={styles.activityList}>

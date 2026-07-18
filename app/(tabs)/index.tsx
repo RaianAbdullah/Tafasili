@@ -2030,7 +2030,7 @@ const getGroupedActivities = () => {
     return (
     <GestureHandlerRootView style={styles.root}>
       <ScrollView contentContainerStyle={styles.loginContainer}>
-        <Text style={styles.loginTitle}>ActiveTrack</Text>
+        <Text style={styles.loginTitle}>Tafasili</Text>
         <Text style={styles.loginTagline}>
           Track and save your activity sessions.{'\n'}تتبع واحفظ جلسات نشاطك.
         </Text>
@@ -2692,7 +2692,7 @@ const getGroupedActivities = () => {
               />
               <TextInput
                 style={styles.input}
-                placeholder="What should ActiveTrack remind you about?"
+                placeholder="What should Tafasili remind you about?"
                 placeholderTextColor="#8f8f92"
                 value={reminderNote}
                 onChangeText={setReminderNote}
@@ -2741,7 +2741,7 @@ const getGroupedActivities = () => {
     <GestureHandlerRootView style={styles.root}>
       <View style={styles.mainContainer}>
         <ScrollView style={styles.container}>
-          <Text style={styles.title}>ActiveTrack</Text>
+          <Text style={styles.title}>Tafasili</Text>
           <Text style={styles.subtitle}>Welcome, {loginUsername}</Text>
 
           <Text style={styles.homeDescription}>

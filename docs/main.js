@@ -1,4 +1,5 @@
 const storageKeys = {
+  // Keep the original keys so the Tafasili rebrand does not erase saved browser data.
   user: 'activetrack-web-user',
   sessions: 'activetrack-web-sessions',
   customActivities: 'activetrack-web-custom-activities',
@@ -61,12 +62,12 @@ const translations = {
     authEyebrow: 'Personal activity tracking',
     heroTitle: 'Track and save your activity sessions.\nتتبع واحفظ جلسات نشاطك.',
     heroCopy:
-      'ActiveTrack Web is a local-first tracker. Your account and saved sessions stay in this browser, with tools to review, filter, and export your history.',
+      'Tafasili is a local-first tracker. Your account and saved sessions stay in this browser, with tools to review, filter, and export your history.',
     signIn: 'Sign in',
     signUp: 'Sign up',
     welcomeBack: 'Welcome back',
     createAccount: 'Create your account',
-    createProfile: 'Create an ActiveTrack profile for this browser.',
+    createProfile: 'Create a Tafasili profile for this browser.',
     signInDescription: 'Sign in to continue tracking on this device.',
     name: 'Name',
     signinIdentifier: 'Username or email',
@@ -78,7 +79,7 @@ const translations = {
     passkey: 'Use Face ID / Passkey',
     forgot: 'Forgot username or password?',
     signupLegal:
-      'By creating an ActiveTrack account, you agree to save your data on this device. We never share your data.',
+      'By creating a Tafasili account, you agree to save your data on this device. We never share your data.',
     or: 'Or',
     appleSignin: 'Log in with Apple',
     facebookSignin: 'Log in with Facebook',
@@ -157,12 +158,12 @@ const translations = {
     authEyebrow: 'تتبع النشاطات الشخصية',
     heroTitle: 'تتبع واحفظ جلسات نشاطك.\nTrack and save your activity sessions.',
     heroCopy:
-      'ActiveTrack Web تطبيق يعمل على هذا الجهاز. حسابك وسجلاتك تبقى محفوظة في هذا المتصفح، مع أدوات للمراجعة والتصفية والتصدير.',
+      'تفاصيلي تطبيق يعمل على هذا الجهاز. حسابك وسجلاتك تبقى محفوظة في هذا المتصفح، مع أدوات للمراجعة والتصفية والتصدير.',
     signIn: 'تسجيل الدخول',
     signUp: 'إنشاء حساب',
     welcomeBack: 'مرحباً بعودتك',
     createAccount: 'إنشاء حساب',
-    createProfile: 'أنشئ ملف ActiveTrack لهذا المتصفح.',
+    createProfile: 'أنشئ ملف تفاصيلي لهذا المتصفح.',
     signInDescription: 'سجل الدخول لمتابعة التتبع على هذا الجهاز.',
     name: 'الاسم',
     signinIdentifier: 'اسم المستخدم أو البريد',
@@ -174,7 +175,7 @@ const translations = {
     passkey: 'استخدام Face ID / مفتاح المرور',
     forgot: 'نسيت اسم المستخدم أو كلمة المرور؟',
     signupLegal:
-      'بإنشاء حساب ActiveTrack، أنت توافق على حفظ بياناتك على هذا الجهاز. لا نشارك بياناتك.',
+      'بإنشاء حساب تفاصيلي، أنت توافق على حفظ بياناتك على هذا الجهاز. لا نشارك بياناتك.',
     or: 'أو',
     appleSignin: 'تسجيل الدخول باستخدام Apple',
     facebookSignin: 'تسجيل الدخول باستخدام Facebook',
@@ -560,13 +561,13 @@ function workText(key) {
   const labels = {
     en: {
       projectName: 'Project name',
-      projectPlaceholder: 'ActiveTrack website',
+      projectPlaceholder: 'Tafasili website',
       notes: 'Work notes',
       projectRequired: 'Please enter project name.',
     },
     ar: {
       projectName: 'اسم المشروع',
-      projectPlaceholder: 'موقع ActiveTrack',
+      projectPlaceholder: 'موقع تفاصيلي',
       notes: 'ملاحظات العمل',
       projectRequired: 'أدخل اسم المشروع.',
     },
@@ -772,7 +773,7 @@ function reminderFields() {
   return fieldSection(labels.title, [
     inputField(labels.date, 'reminderDate', '2026-08-01', 'date'),
     inputField(labels.time, 'reminderTime', '18:30', 'time'),
-    textAreaField(labels.note, 'reminderNote', 'What should ActiveTrack remind you about?', true),
+    textAreaField(labels.note, 'reminderNote', 'What should Tafasili remind you about?', true),
   ]);
 }
 
@@ -839,7 +840,7 @@ async function createPasskey(user) {
     publicKey: {
       challenge: crypto.getRandomValues(new Uint8Array(32)),
       rp: {
-        name: 'ActiveTrack',
+        name: 'Tafasili',
       },
       user: {
         id: crypto.getRandomValues(new Uint8Array(16)),
@@ -2801,7 +2802,7 @@ function clearHistory() {
 function exportHistory() {
   const user = readJson(storageKeys.user, null);
   const exportData = {
-    app: 'ActiveTrack Web',
+    app: 'Tafasili Web',
     exportedAt: new Date().toISOString(),
     user: user
       ? {
@@ -2822,7 +2823,7 @@ function exportHistory() {
   const dateStamp = new Date().toISOString().slice(0, 10);
 
   link.href = downloadUrl;
-  link.download = `activetrack-history-${dateStamp}.json`;
+  link.download = `tafasili-history-${dateStamp}.json`;
   document.body.appendChild(link);
   link.click();
   link.remove();
