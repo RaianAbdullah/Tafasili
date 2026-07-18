@@ -60,11 +60,17 @@
               </label>
               <label>
                 <span id="password-label">Password</span>
-                <input id="auth-password" name="password" type="password" autocomplete="current-password" placeholder="Enter password" required />
+                <span class="password-field">
+                  <input id="auth-password" name="password" type="password" autocomplete="current-password" placeholder="Enter password" required />
+                  <button class="password-toggle" type="button" data-password-target="auth-password">Show</button>
+                </span>
               </label>
               <label class="signup-only">
                 <span id="repeat-password-label">Confirm password</span>
-                <input name="repeatPassword" type="password" autocomplete="new-password" placeholder="Confirm password" />
+                <span class="password-field">
+                  <input id="repeat-password" name="repeatPassword" type="password" autocomplete="new-password" placeholder="Confirm password" />
+                  <button class="password-toggle" type="button" data-password-target="repeat-password">Show</button>
+                </span>
               </label>
               <p class="signup-help signup-only" id="password-minimum">Password must be at least 8 characters.</p>
               <button class="button primary" id="auth-submit" type="submit">Sign in</button>

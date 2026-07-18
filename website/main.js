@@ -91,6 +91,8 @@ const translations = {
     confirmPassword: 'Confirm password',
     passwordMinimum: 'Password must be at least 8 characters.',
     newPassword: 'New password',
+    showPassword: 'Show',
+    hidePassword: 'Hide',
     passkey: 'Use Face ID / Passkey',
     forgot: 'Forgot password?',
     signupLegal:
@@ -187,6 +189,8 @@ const translations = {
     confirmPassword: 'تأكيد كلمة المرور',
     passwordMinimum: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل.',
     newPassword: 'كلمة مرور جديدة',
+    showPassword: 'إظهار',
+    hidePassword: 'إخفاء',
     passkey: 'استخدام Face ID / مفتاح المرور',
     forgot: 'نسيت كلمة المرور؟',
     signupLegal:
@@ -333,6 +337,7 @@ const authMessage = document.querySelector('#auth-message');
 const identifierInput = document.querySelector('input[name="identifier"]');
 const passwordInput = document.querySelector('#auth-password');
 const repeatPasswordInput = document.querySelector('input[name="repeatPassword"]');
+const passwordToggleButtons = document.querySelectorAll('[data-password-target]');
 const passkeyButton = document.querySelector('#passkey-button');
 const forgotButton = document.querySelector('#forgot-button');
 const appleSignupButton = document.querySelector('#apple-signup-button');
@@ -642,6 +647,10 @@ function applyLanguage() {
   setText('#password-label', state.authMode === 'signup' ? text('newPassword') : text('password'));
   setText('#repeat-password-label', text('confirmPassword'));
   setText('#password-minimum', text('passwordMinimum'));
+  passwordToggleButtons.forEach((button) => {
+    const target = document.querySelector(`#${button.dataset.passwordTarget}`);
+    button.textContent = target?.type === 'text' ? text('hidePassword') : text('showPassword');
+  });
   setText('#passkey-button', text('passkey'));
   setText('#signup-divider', text('or'));
   setText('#apple-signup-button', state.authMode === 'signup' ? text('appleSignup') : text('appleSignin'));
@@ -963,6 +972,13 @@ function setAuthMode(mode) {
   forgotButton.style.display = isSignup || isRecovery ? 'none' : 'inline-flex';
   forgotButton.textContent = text('forgot');
   authMessage.textContent = '';
+  passwordToggleButtons.forEach((button) => {
+    const target = document.querySelector(`#${button.dataset.passwordTarget}`);
+    if (target) {
+      target.type = 'password';
+    }
+    button.textContent = text('showPassword');
+  });
 
   document.querySelectorAll('[data-auth-mode]').forEach((tab) => {
     tab.classList.toggle('active', tab.dataset.authMode === mode);
@@ -3297,6 +3313,20 @@ function exportHistory() {
 
 document.querySelectorAll('[data-auth-mode]').forEach((tab) => {
   tab.addEventListener('click', () => setAuthMode(tab.dataset.authMode));
+});
+
+passwordToggleButtons.forEach((button) => {
+  button.addEventListener('click', () => {
+    const target = document.querySelector(`#${button.dataset.passwordTarget}`);
+    if (!target) {
+      return;
+    }
+
+    const passwordIsVisible = target.type === 'text';
+    target.type = passwordIsVisible ? 'password' : 'text';
+    button.textContent = passwordIsVisible ? text('showPassword') : text('hidePassword');
+    button.setAttribute('aria-label', button.textContent);
+  });
 });
 
 async function ensurePasswordRecoverySession() {

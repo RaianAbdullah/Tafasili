@@ -396,6 +396,35 @@ textarea:focus {
   outline: none;
 }
 
+.password-field {
+  position: relative;
+  display: block;
+}
+
+.password-field input {
+  padding-inline-end: 82px;
+}
+
+.password-toggle {
+  position: absolute;
+  inset-inline-end: 8px;
+  top: 50%;
+  min-height: 38px;
+  padding: 6px 10px;
+  border: 0;
+  background: transparent;
+  color: #050505;
+  font-size: 0.9rem;
+  font-weight: 800;
+  transform: translateY(-50%);
+}
+
+.password-toggle:focus-visible {
+  border-radius: 6px;
+  outline: 2px solid #667085;
+  outline-offset: 1px;
+}
+
 .form-grid .signup-only,
 .form-grid .reset-only {
   display: none;

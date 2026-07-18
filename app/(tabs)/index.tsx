@@ -127,7 +127,9 @@ export default function HomeScreen() {
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [signupRepeatPassword, setSignupRepeatPassword] = useState('');
+  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
   const [activities, setActivities] = useState<string[]>(defaultActivities);
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
   const [selectedActivityCategory, setSelectedActivityCategory] = useState<string | null>(null);
@@ -436,8 +438,10 @@ export default function HomeScreen() {
   }, [isStudyCandleRunning, studyCandleDurationSeconds]);
 
   const login = async () => {
-  if (loginUsername.trim() === '') {
-    alert('Please enter username or phone number');
+  const email = loginUsername.trim().toLowerCase();
+
+  if (email === '') {
+    alert(isArabic ? 'أدخل بريدك الإلكتروني' : 'Please enter your email address');
     return;
   }
 
@@ -448,7 +452,7 @@ export default function HomeScreen() {
 
   try {
     if (isSupabaseConfigured) {
-      const user = await signInWithSupabase(loginUsername.trim(), loginPassword);
+      const user = await signInWithSupabase(email, loginPassword);
 
       if (!user) {
         throw new Error('No account returned.');
@@ -461,11 +465,14 @@ export default function HomeScreen() {
     setIsLoggedIn(true);
   } catch (error) {
     alert(authErrorMessage(error, isArabic, 'signin'));
+    setLoginPassword('');
   }
 };
 const signup = async () => {
-  if (loginUsername.trim() === '') {
-    alert('Please enter email or phone number');
+  const email = loginUsername.trim().toLowerCase();
+
+  if (email === '') {
+    alert(isArabic ? 'أدخل بريدك الإلكتروني' : 'Please enter your email address');
     return;
   }
 
@@ -481,7 +488,7 @@ const signup = async () => {
 
   try {
     if (isSupabaseConfigured) {
-      const result = await signUpWithSupabase(loginUsername.trim(), loginPassword);
+      const result = await signUpWithSupabase(email, loginPassword);
 
       if (result?.user?.identities?.length === 0) {
         alert(isArabic
@@ -509,7 +516,7 @@ const signup = async () => {
   }
 };
 const forgotPassword = async () => {
-  const email = loginUsername.trim();
+  const email = loginUsername.trim().toLowerCase();
 
   if (!email.includes('@')) {
     alert(isArabic ? 'أدخل بريدك الإلكتروني أولاً.' : 'Enter your email address first.');
@@ -2332,30 +2339,75 @@ const getGroupedActivities = () => {
           placeholder={isArabic ? 'البريد الإلكتروني' : 'Email'}
           placeholderTextColor="#050505"
           value={loginUsername}
-          onChangeText={setLoginUsername}
+          onChangeText={(value) => setLoginUsername(value.replace(/\s/g, ''))}
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="email"
+          keyboardType="email-address"
+          textContentType="emailAddress"
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder={isSignupMode
-            ? isArabic ? 'كلمة مرور جديدة' : 'New password'
-            : isArabic ? 'كلمة المرور' : 'Password'}
-          placeholderTextColor="#050505"
-          value={loginPassword}
-          onChangeText={setLoginPassword}
-          secureTextEntry
-        />
+        <View style={styles.passwordInputRow}>
+          <TextInput
+            style={[styles.input, styles.passwordInput]}
+            placeholder={isSignupMode
+              ? isArabic ? 'كلمة مرور جديدة' : 'New password'
+              : isArabic ? 'كلمة المرور' : 'Password'}
+            placeholderTextColor="#050505"
+            value={loginPassword}
+            onChangeText={setLoginPassword}
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete={isSignupMode ? 'new-password' : 'current-password'}
+            textContentType={isSignupMode ? 'newPassword' : 'password'}
+            secureTextEntry={!showLoginPassword}
+          />
+          <TouchableOpacity
+            style={styles.passwordVisibilityButton}
+            onPress={() => setShowLoginPassword((isVisible) => !isVisible)}
+            accessibilityRole="button"
+            accessibilityLabel={showLoginPassword
+              ? isArabic ? 'إخفاء كلمة المرور' : 'Hide password'
+              : isArabic ? 'إظهار كلمة المرور' : 'Show password'}
+          >
+            <Text style={styles.passwordVisibilityText}>
+              {showLoginPassword
+                ? isArabic ? 'إخفاء' : 'Hide'
+                : isArabic ? 'إظهار' : 'Show'}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         {isSignupMode && (
           <>
-            <TextInput
-              style={styles.input}
-              placeholder={isArabic ? 'تأكيد كلمة المرور' : 'Confirm password'}
-              placeholderTextColor="#050505"
-              value={signupRepeatPassword}
-              onChangeText={setSignupRepeatPassword}
-              secureTextEntry
-            />
+            <View style={styles.passwordInputRow}>
+              <TextInput
+                style={[styles.input, styles.passwordInput]}
+                placeholder={isArabic ? 'تأكيد كلمة المرور' : 'Confirm password'}
+                placeholderTextColor="#050505"
+                value={signupRepeatPassword}
+                onChangeText={setSignupRepeatPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="new-password"
+                textContentType="newPassword"
+                secureTextEntry={!showRepeatPassword}
+              />
+              <TouchableOpacity
+                style={styles.passwordVisibilityButton}
+                onPress={() => setShowRepeatPassword((isVisible) => !isVisible)}
+                accessibilityRole="button"
+                accessibilityLabel={showRepeatPassword
+                  ? isArabic ? 'إخفاء تأكيد كلمة المرور' : 'Hide confirmed password'
+                  : isArabic ? 'إظهار تأكيد كلمة المرور' : 'Show confirmed password'}
+              >
+                <Text style={styles.passwordVisibilityText}>
+                  {showRepeatPassword
+                    ? isArabic ? 'إخفاء' : 'Hide'
+                    : isArabic ? 'إظهار' : 'Show'}
+                </Text>
+              </TouchableOpacity>
+            </View>
 
             <Text style={styles.signupHelp}>
               {isArabic ? 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.' : 'Password must be at least 8 characters.'}
@@ -3749,6 +3801,27 @@ activityGroupTitle: {
     fontSize: 20,
     marginBottom: 12,
     color: '#050505',
+  },
+  passwordInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  passwordInput: {
+    flex: 1,
+    marginBottom: 0,
+    paddingRight: 84,
+  },
+  passwordVisibilityButton: {
+    position: 'absolute',
+    right: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  passwordVisibilityText: {
+    color: '#050505',
+    fontSize: 16,
+    fontWeight: '700',
   },
   candleBox: {
     alignItems: 'center',
