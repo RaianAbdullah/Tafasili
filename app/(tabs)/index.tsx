@@ -22,6 +22,7 @@ import HorseRidingTracker from '../../components/HorseRidingTracker';
 import LapTracker from '../../components/LapTracker';
 import MatchTracker from '../../components/MatchTracker';
 import {
+  getSupabaseSession,
   signInWithSupabase,
   signOutFromSupabase,
   signUpWithSupabase,
@@ -68,6 +69,8 @@ const STUDY_CANDLE_DURATION_SECONDS = 3 * 60 * 60;
 export default function HomeScreen() {
   const navigation = useNavigation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(isSupabaseConfigured);
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -270,7 +273,33 @@ export default function HomeScreen() {
   }, [isLoggedIn, navigation]);
 
   useEffect(() => {
-    loadSavedData();
+    let isMounted = true;
+
+    const restoreAccount = async () => {
+      try {
+        const session = await getSupabaseSession();
+
+        if (isMounted && session?.user) {
+          setAuthUserId(session.user.id);
+          setIsLoggedIn(true);
+          await loadSavedData(session.user.id);
+        } else if (!isSupabaseConfigured) {
+          await loadSavedData();
+        }
+      } catch {
+        // The sign-in screen remains available if session restoration fails.
+      } finally {
+        if (isMounted) {
+          setIsAuthLoading(false);
+        }
+      }
+    };
+
+    void restoreAccount();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -322,11 +351,17 @@ export default function HomeScreen() {
 
   try {
     if (isSupabaseConfigured) {
-      await signInWithSupabase(loginUsername.trim(), loginPassword);
+      const user = await signInWithSupabase(loginUsername.trim(), loginPassword);
+
+      if (!user) {
+        throw new Error('No account returned.');
+      }
+
+      setAuthUserId(user.id);
+      await loadSavedData(user.id);
     }
 
     setIsLoggedIn(true);
-    await loadSavedData();
   } catch {
     alert('Could not sign in. Check your email and password.');
   }
@@ -349,17 +384,25 @@ const signup = async () => {
 
   try {
     if (isSupabaseConfigured) {
-      await signUpWithSupabase(loginUsername.trim(), loginPassword);
+      const result = await signUpWithSupabase(loginUsername.trim(), loginPassword);
+
+      if (!result?.session || !result.user) {
+        alert('Account created. Check your email to confirm it, then sign in.');
+        setAuthMode('signin');
+        return;
+      }
+
+      setAuthUserId(result.user.id);
+      await loadSavedData(result.user.id);
     }
 
     setIsLoggedIn(true);
-    await loadSavedData();
   } catch {
     alert('Could not create account. Use a valid email and try again.');
   }
 };
 const logout = async () => {
-  await saveSessionsToStorage(sessions);
+  await saveSessionsToStorage(sessions, authUserId);
 
   try {
     await signOutFromSupabase();
@@ -368,14 +411,21 @@ const logout = async () => {
   }
 
   setIsLoggedIn(false);
+  setAuthUserId(null);
+  setSessions([]);
   setLoginPassword('');
   setSignupRepeatPassword('');
 };
-  const loadSavedData = async () => {
+  const loadSavedData = async (userId: string | null = null) => {
     let localSessions: Session[] = [];
+    const sessionsStorageKey = userId ? `sessions:${userId}` : 'sessions';
 
     try {
-      const savedSessions = await AsyncStorage.getItem('sessions');
+      const scopedSessions = await AsyncStorage.getItem(sessionsStorageKey);
+      const legacySessions = userId && !scopedSessions
+        ? await AsyncStorage.getItem('sessions')
+        : null;
+      const savedSessions = scopedSessions ?? legacySessions;
       const savedActivities = await AsyncStorage.getItem('activities');
       const savedCustomTemplates = await AsyncStorage.getItem('customActivityTemplates');
 
@@ -417,16 +467,21 @@ const logout = async () => {
 
         const restoredSessions = [...mergedSessions.values()].sort((first, second) => second.id - first.id);
         setSessions(restoredSessions);
-        await AsyncStorage.setItem('sessions', JSON.stringify(restoredSessions));
+        await AsyncStorage.setItem(sessionsStorageKey, JSON.stringify(restoredSessions));
+
+        if (userId) {
+          await Promise.allSettled(localSessions.map((session) => saveCloudSession(session)));
+        }
       }
     } catch {
       // Local history remains available when cloud sync is offline or not signed in.
     }
   };
 
-  const saveSessionsToStorage = async (newSessions: Session[]) => {
+  const saveSessionsToStorage = async (newSessions: Session[], userId = authUserId) => {
     try {
-      await AsyncStorage.setItem('sessions', JSON.stringify(newSessions));
+      const sessionsStorageKey = userId ? `sessions:${userId}` : 'sessions';
+      await AsyncStorage.setItem(sessionsStorageKey, JSON.stringify(newSessions));
     } catch {
       alert('Error saving session');
     }
@@ -2024,6 +2079,17 @@ const getGroupedActivities = () => {
 
     return null;
   };
+  if (isAuthLoading) {
+    return (
+      <GestureHandlerRootView style={styles.root}>
+        <View style={styles.loginContainer}>
+          <Text style={styles.loginTitle}>Tafasili</Text>
+          <Text style={styles.loginSubtitle}>Restoring your secure account...</Text>
+        </View>
+      </GestureHandlerRootView>
+    );
+  }
+
   if (!isLoggedIn) {
     const isSignupMode = authMode === 'signup';
 
@@ -2062,7 +2128,7 @@ const getGroupedActivities = () => {
 
         <TextInput
           style={styles.input}
-          placeholder={isSignupMode ? 'Email or phone' : 'Username or email'}
+          placeholder="Email"
           placeholderTextColor="#8f8f92"
           value={loginUsername}
           onChangeText={setLoginUsername}

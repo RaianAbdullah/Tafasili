@@ -73,12 +73,16 @@ export const saveCloudSession = async (session: Session) => {
 
   const userId = await getCurrentUserId();
 
+  if (!userId) {
+    throw new Error('Sign in before saving cloud history.');
+  }
+
   const { error } = await supabase
     .from('activity_sessions')
     .upsert({
       ...toRow(session),
       user_id: userId,
-    });
+    }, { onConflict: 'user_id,id' });
 
   if (error) {
     throw error;

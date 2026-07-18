@@ -35,9 +35,8 @@
             <h1 id="hero-title">Track and save your activity sessions.
 تتبع واحفظ جلسات نشاطك.</h1>
             <p id="hero-copy">
-              Tafasili is a local-first tracker. Your account and saved
-              sessions stay in this browser, with tools to review, filter, and
-              export your history.
+              Your Tafasili account securely saves activity history to the
+              cloud, while keeping an offline copy on this device.
             </p>
           </div>
 
@@ -74,8 +73,8 @@
               <button class="link-button" id="forgot-button" type="button">Forgot username or password?</button>
               <p class="status-text" id="auth-message" role="status"></p>
               <div class="security-note">
-                <strong id="security-title">Security on this device</strong>
-                <span id="security-text">Password hashes, Face ID / passkey support, and history saved until you delete it.</span>
+                <strong id="security-title">Secure cloud account</strong>
+                <span id="security-text">Encrypted sign-in and private history protected by account-level access rules.</span>
               </div>
             </form>
           </div>
@@ -178,6 +177,8 @@
       </main>
     </div>
 
-    <script src="./main.js?v=20260718-tafasili"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7/dist/umd/supabase.min.js"></script>
+    <script src="./supabase-config.js?v=20260718-supabase"></script>
+    <script src="./main.js?v=20260718-supabase"></script>
   </body>
 </html>

@@ -23,13 +23,13 @@ This creates the `activity_sessions` table and enables Row Level Security so eac
 2. Open API.
 3. Copy:
    - Project URL
-   - anon public key
+   - publishable key
 4. Create a local `.env` file in the project root.
 5. Use `.env.example` as the template:
 
 ```bash
 EXPO_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-public-key
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
 ```
 
 Do not put the service-role secret key in the app.

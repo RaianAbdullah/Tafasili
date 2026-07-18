@@ -8,6 +8,16 @@ const storageKeys = {
   language: 'activetrack-web-language',
 };
 const passwordIterations = 210000;
+const cloudConfig = window.TAFASILI_SUPABASE;
+const cloudClient = window.supabase && cloudConfig
+  ? window.supabase.createClient(cloudConfig.url, cloudConfig.publishableKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+      },
+    })
+  : null;
 
 const defaultActivities = [
   'Football',
@@ -62,22 +72,22 @@ const translations = {
     authEyebrow: 'Personal activity tracking',
     heroTitle: 'Track and save your activity sessions.\nتتبع واحفظ جلسات نشاطك.',
     heroCopy:
-      'Tafasili is a local-first tracker. Your account and saved sessions stay in this browser, with tools to review, filter, and export your history.',
+      'Your Tafasili account securely saves activity history to the cloud, while keeping an offline copy on this device.',
     signIn: 'Sign in',
     signUp: 'Sign up',
     welcomeBack: 'Welcome back',
     createAccount: 'Create your account',
-    createProfile: 'Create a Tafasili profile for this browser.',
+    createProfile: 'Create a secure Tafasili cloud account.',
     signInDescription: 'Sign in to continue tracking on this device.',
     name: 'Name',
-    signinIdentifier: 'Username or email',
+    signinIdentifier: 'Email or phone',
     signupIdentifier: 'Email or phone',
     password: 'Password',
     confirmPassword: 'Confirm password',
     passwordMinimum: 'Password must be at least 8 characters.',
     newPassword: 'New password',
     passkey: 'Use Face ID / Passkey',
-    forgot: 'Forgot username or password?',
+    forgot: 'Forgot password?',
     signupLegal:
       'By creating a Tafasili account, you agree to save your data on this device. We never share your data.',
     or: 'Or',
@@ -85,9 +95,9 @@ const translations = {
     facebookSignin: 'Log in with Facebook',
     appleSignup: 'Sign up with Apple',
     facebookSignup: 'Sign up with Facebook',
-    securityTitle: 'Security on this device',
+    securityTitle: 'Secure cloud account',
     securityText:
-      'Password hashes, Face ID / passkey support, and history saved until you delete it.',
+      'Encrypted sign-in and private history protected by account-level access rules.',
     home: 'Home',
     homeTitle: 'What do you want to track?',
     welcome: 'Choose an activity and save it to History.',
@@ -158,22 +168,22 @@ const translations = {
     authEyebrow: 'تتبع النشاطات الشخصية',
     heroTitle: 'تتبع واحفظ جلسات نشاطك.\nTrack and save your activity sessions.',
     heroCopy:
-      'تفاصيلي تطبيق يعمل على هذا الجهاز. حسابك وسجلاتك تبقى محفوظة في هذا المتصفح، مع أدوات للمراجعة والتصفية والتصدير.',
+      'يحفظ حساب تفاصيلي سجل نشاطاتك بأمان في السحابة، مع نسخة محلية على هذا الجهاز.',
     signIn: 'تسجيل الدخول',
     signUp: 'إنشاء حساب',
     welcomeBack: 'مرحباً بعودتك',
     createAccount: 'إنشاء حساب',
-    createProfile: 'أنشئ ملف تفاصيلي لهذا المتصفح.',
+    createProfile: 'أنشئ حساب تفاصيلي سحابياً وآمناً.',
     signInDescription: 'سجل الدخول لمتابعة التتبع على هذا الجهاز.',
     name: 'الاسم',
-    signinIdentifier: 'اسم المستخدم أو البريد',
+    signinIdentifier: 'البريد أو رقم الجوال',
     signupIdentifier: 'البريد أو رقم الجوال',
     password: 'كلمة المرور',
     confirmPassword: 'تأكيد كلمة المرور',
     passwordMinimum: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل.',
     newPassword: 'كلمة مرور جديدة',
     passkey: 'استخدام Face ID / مفتاح المرور',
-    forgot: 'نسيت اسم المستخدم أو كلمة المرور؟',
+    forgot: 'نسيت كلمة المرور؟',
     signupLegal:
       'بإنشاء حساب تفاصيلي، أنت توافق على حفظ بياناتك على هذا الجهاز. لا نشارك بياناتك.',
     or: 'أو',
@@ -181,9 +191,9 @@ const translations = {
     facebookSignin: 'تسجيل الدخول باستخدام Facebook',
     appleSignup: 'إنشاء حساب باستخدام Apple',
     facebookSignup: 'إنشاء حساب باستخدام Facebook',
-    securityTitle: 'الأمان على هذا الجهاز',
+    securityTitle: 'حساب سحابي آمن',
     securityText:
-      'تجزئة كلمة المرور، دعم Face ID / مفاتيح المرور، وحفظ السجل حتى تحذفه.',
+      'تسجيل دخول مشفر وسجل خاص محمي بسياسات وصول خاصة بكل حساب.',
     home: 'الرئيسية',
     homeTitle: 'ماذا تريد أن تتتبع؟',
     welcome: 'اختر نشاطاً واحفظه في السجل.',
@@ -282,6 +292,8 @@ const state = {
   authMode: 'signin',
   currentView: 'auth',
   previousView: null,
+  userId: null,
+  userEmail: null,
   selectedActivity: null,
   selectedCategory: null,
   startTime: null,
@@ -656,14 +668,121 @@ function writeJson(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
+function accountStorageKey(baseKey, userId = state.userId) {
+  return userId ? `${baseKey}:${userId}` : baseKey;
+}
+
 function restorePersistentData() {
-  const savedSessions = readJson(storageKeys.sessions, []);
+  const savedSessions = readJson(accountStorageKey(storageKeys.sessions), []);
   const savedActivities = readJson(storageKeys.customActivities, []);
   const savedTemplates = readJson(storageKeys.customTemplates, {});
 
   state.sessions = Array.isArray(savedSessions) ? savedSessions : [];
   state.customActivities = Array.isArray(savedActivities) ? savedActivities : [];
   state.customTemplates = savedTemplates && typeof savedTemplates === 'object' ? savedTemplates : {};
+}
+
+function sessionToCloudRow(session, userId) {
+  return {
+    user_id: userId,
+    id: session.id,
+    activity: session.activity,
+    start_time: session.start || '',
+    end_time: session.end || '',
+    duration: session.duration || '',
+    duration_seconds: Number(session.durationSeconds || 0),
+    session_date: session.date,
+    details: session.details || {},
+  };
+}
+
+function cloudRowToSession(row) {
+  return {
+    id: Number(row.id),
+    activity: row.activity,
+    start: row.start_time,
+    end: row.end_time,
+    duration: row.duration,
+    durationSeconds: row.duration_seconds || 0,
+    date: row.session_date,
+    details: row.details || {},
+  };
+}
+
+async function saveSessionToCloud(session) {
+  if (!cloudClient || !state.userId) {
+    throw new Error('Cloud account is not available.');
+  }
+
+  const { error } = await cloudClient
+    .from('activity_sessions')
+    .upsert(sessionToCloudRow(session, state.userId), { onConflict: 'user_id,id' });
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function restoreCloudHistory(userId) {
+  const scopedKey = accountStorageKey(storageKeys.sessions, userId);
+  const migrationKey = `tafasili-cloud-migrated:${userId}`;
+  const scopedSessions = readJson(scopedKey, []);
+  const legacySessions = localStorage.getItem(migrationKey)
+    ? []
+    : readJson(storageKeys.sessions, []);
+  const localSessions = [...scopedSessions, ...legacySessions];
+
+  const { data, error } = await cloudClient
+    .from('activity_sessions')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  if (legacySessions.length > 0) {
+    const { error: migrationError } = await cloudClient
+      .from('activity_sessions')
+      .upsert(
+        legacySessions.map((session) => sessionToCloudRow(session, userId)),
+        { onConflict: 'user_id,id' }
+      );
+
+    if (migrationError) {
+      throw migrationError;
+    }
+  }
+
+  const mergedSessions = new Map();
+  localSessions.forEach((session) => mergedSessions.set(String(session.id), session));
+  (data || []).forEach((row) => {
+    const session = cloudRowToSession(row);
+    mergedSessions.set(String(session.id), session);
+  });
+
+  state.sessions = [...mergedSessions.values()].sort(
+    (first, second) => new Date(second.date) - new Date(first.date)
+  );
+  writeJson(scopedKey, state.sessions);
+  localStorage.setItem(migrationKey, 'true');
+}
+
+async function completeCloudSignIn(user) {
+  state.userId = user.id;
+  state.userEmail = user.email || user.phone || '';
+  markSignedIn();
+  restorePersistentData();
+
+  try {
+    await restoreCloudHistory(user.id);
+  } catch {
+    authMessage.textContent = 'Signed in. Cloud history will retry when your connection returns.';
+  }
+
+  showView('home');
+  renderHome();
+  renderHistory();
 }
 
 function bytesToBase64(bytes) {
@@ -824,7 +943,7 @@ function currentUser() {
 }
 
 function isSignedIn() {
-  return sessionStorage.getItem(storageKeys.activeSession) === 'true';
+  return Boolean(state.userId) && sessionStorage.getItem(storageKeys.activeSession) === 'true';
 }
 
 function markSignedIn() {
@@ -2305,7 +2424,7 @@ function updateTimer() {
   timerDisplay.textContent = formatDuration(seconds);
 }
 
-function saveSession(event) {
+async function saveSession(event) {
   event.preventDefault();
 
   const activity = state.selectedActivity;
@@ -2356,11 +2475,17 @@ function saveSession(event) {
   };
 
   state.sessions = [session, ...state.sessions];
-  writeJson(storageKeys.sessions, state.sessions);
+  writeJson(accountStorageKey(storageKeys.sessions), state.sessions);
   if (activity === 'Studying') {
     pauseStudyCandle();
   }
-  sessionMessage.textContent = 'Saved to History.';
+
+  try {
+    await saveSessionToCloud(session);
+    sessionMessage.textContent = 'Saved securely to your account.';
+  } catch {
+    sessionMessage.textContent = 'Saved on this device. Cloud sync will retry after you reconnect.';
+  }
   renderHome();
   renderHistory();
 }
@@ -2788,13 +2913,25 @@ function labelFromKey(key) {
     .replace(/^./, (letter) => letter.toUpperCase());
 }
 
-function clearHistory() {
+async function clearHistory() {
   if (state.sessions.length === 0) {
     return;
   }
 
   state.sessions = [];
-  writeJson(storageKeys.sessions, state.sessions);
+  writeJson(accountStorageKey(storageKeys.sessions), state.sessions);
+
+  if (cloudClient && state.userId) {
+    const { error } = await cloudClient
+      .from('activity_sessions')
+      .delete()
+      .eq('user_id', state.userId);
+
+    if (error) {
+      sessionMessage.textContent = 'Local history cleared, but cloud deletion failed.';
+    }
+  }
+
   renderHome();
   renderHistory();
 }
@@ -2848,6 +2985,15 @@ authForm.addEventListener('submit', async (event) => {
   const repeatPassword = String(formData.get('repeatPassword') || '');
 
   try {
+    if (!cloudClient) {
+      authMessage.textContent = 'Cloud accounts are temporarily unavailable.';
+      return;
+    }
+
+    const credentials = identifier.includes('@')
+      ? { email: identifier, password }
+      : { phone: identifier, password };
+
     if (state.authMode === 'signup') {
       if (password.length < 8) {
         authMessage.textContent = 'Use at least 8 characters for your password.';
@@ -2859,78 +3005,57 @@ authForm.addEventListener('submit', async (event) => {
         return;
       }
 
-      const passwordSalt = bytesToBase64(crypto.getRandomValues(new Uint8Array(16)));
-      const user = {
-        schemaVersion: 2,
-        createdAt: new Date().toISOString(),
-        fullName: identifier,
-        identifier,
-        goal: null,
-        passwordSalt,
-        passwordHash: await hashSecret(password, passwordSalt),
-        passkey: null,
-      };
+      const { data, error } = await cloudClient.auth.signUp(credentials);
 
-      try {
-        user.passkey = await createPasskey(user);
-        authMessage.textContent = `Account created. Face ID / passkey is ready.`;
-      } catch (error) {
-        authMessage.textContent = `Account created. Passkey setup can be added later.`;
+      if (error) {
+        throw error;
       }
 
-      writeJson(storageKeys.user, user);
       authForm.reset();
-      setAuthMode('signin');
-      authMessage.textContent = user.passkey
-        ? 'Account created. Face ID / passkey is ready.'
-        : 'Account created. You can sign in now.';
+
+      if (!data.session || !data.user) {
+        setAuthMode('signin');
+        authMessage.textContent = 'Account created. Check your email to confirm it, then sign in.';
+        return;
+      }
+
+      await completeCloudSignIn(data.user);
       return;
     }
 
-    const savedUser = currentUser();
+    const { data, error } = await cloudClient.auth.signInWithPassword(credentials);
 
-    if (!savedUser) {
-      authMessage.textContent = 'Create an account first on this device.';
-      return;
+    if (error || !data.user) {
+      throw error || new Error('Account not found.');
     }
 
-    if (!savedUser.passwordHash || !savedUser.passwordSalt) {
-      writeJson(storageKeys.user, {
-        ...savedUser,
-        identifier: savedUser.identifier || identifier,
-      });
-      restorePersistentData();
-      markSignedIn();
-      showView('home');
-      return;
-    }
-
-    if (identifier && identifier !== savedUser.identifier) {
-      authMessage.textContent = 'That username or phone is not saved on this device.';
-      return;
-    }
-
-    const passwordHash = await hashSecret(password, savedUser.passwordSalt);
-
-    if (!timingSafeEqual(passwordHash, savedUser.passwordHash)) {
-      authMessage.textContent = 'Password is not correct.';
-      return;
-    }
-
-    restorePersistentData();
-    markSignedIn();
-    showView('home');
+    await completeCloudSignIn(data.user);
     authForm.reset();
   } catch (error) {
-    authMessage.textContent = 'Security action failed. Try again.';
+    authMessage.textContent = error?.message || 'Security action failed. Try again.';
   }
 });
 
-forgotButton.addEventListener('click', () => {
-  authMessage.textContent = 'Password recovery can be connected later.';
+forgotButton.addEventListener('click', async () => {
+  const identifier = String(new FormData(authForm).get('identifier') || '').trim();
+
+  if (!identifier.includes('@')) {
+    authMessage.textContent = 'Enter your email address first.';
+    return;
+  }
+
+  const { error } = await cloudClient.auth.resetPasswordForEmail(identifier, {
+    redirectTo: `${window.location.origin}${window.location.pathname}`,
+  });
+
+  authMessage.textContent = error
+    ? error.message
+    : 'Password recovery instructions were sent to your email.';
 });
 
-passkeyButton.addEventListener('click', loginWithPasskey);
+passkeyButton.addEventListener('click', () => {
+  authMessage.textContent = 'Secure Face ID / passkey login is the next authentication upgrade.';
+});
 appleSignupButton.addEventListener('click', () => {
   authMessage.textContent =
     state.authMode === 'signup'
@@ -2944,11 +3069,15 @@ facebookSignupButton.addEventListener('click', () => {
       : 'Facebook login can be connected later.';
 });
 
-logoutButton.addEventListener('click', () => {
+logoutButton.addEventListener('click', async () => {
   stopTimer();
-  writeJson(storageKeys.sessions, state.sessions);
+  writeJson(accountStorageKey(storageKeys.sessions), state.sessions);
   writeJson(storageKeys.customActivities, state.customActivities);
   writeJson(storageKeys.customTemplates, state.customTemplates);
+  await cloudClient?.auth.signOut();
+  state.userId = null;
+  state.userEmail = null;
+  state.sessions = [];
   sessionStorage.removeItem(storageKeys.activeSession);
   showView('auth', false);
 });
@@ -2989,8 +3118,18 @@ document.addEventListener('click', (event) => {
   }
 
   if (deleteButton) {
-    state.sessions = state.sessions.filter((session) => String(session.id) !== deleteButton.dataset.deleteSession);
-    writeJson(storageKeys.sessions, state.sessions);
+    const sessionId = deleteButton.dataset.deleteSession;
+    state.sessions = state.sessions.filter((session) => String(session.id) !== sessionId);
+    writeJson(accountStorageKey(storageKeys.sessions), state.sessions);
+
+    if (cloudClient && state.userId) {
+      void cloudClient
+        .from('activity_sessions')
+        .delete()
+        .eq('user_id', state.userId)
+        .eq('id', Number(sessionId));
+    }
+
     renderHome();
     renderHistory();
   }
@@ -3031,6 +3170,25 @@ document.addEventListener('visibilitychange', syncStudyCandleWithClock);
 window.addEventListener('focus', syncStudyCandleWithClock);
 window.addEventListener('pageshow', syncStudyCandleWithClock);
 
+async function initializeCloudAccount() {
+  if (!cloudClient) {
+    authMessage.textContent = 'Cloud account configuration is unavailable.';
+    showView('auth', false);
+    return;
+  }
+
+  const { data, error } = await cloudClient.auth.getSession();
+
+  if (error || !data.session?.user) {
+    state.userId = null;
+    sessionStorage.removeItem(storageKeys.activeSession);
+    showView('auth', false);
+    return;
+  }
+
+  await completeCloudSignIn(data.session.user);
+}
+
 setAuthMode('signin');
 applyLanguage();
-showView(isSignedIn() ? 'home' : 'auth', false);
+void initializeCloudAccount();

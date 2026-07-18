@@ -31,7 +31,33 @@ export const signUpWithSupabase = async (email: string, password: string) => {
     throw error;
   }
 
-  return data.user;
+  return data;
+};
+
+export const getSupabaseSession = async () => {
+  if (!isSupabaseConfigured || !supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase.auth.getSession();
+
+  if (error) {
+    throw error;
+  }
+
+  return data.session;
+};
+
+export const sendPasswordReset = async (email: string) => {
+  if (!isSupabaseConfigured || !supabase) {
+    return;
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+  if (error) {
+    throw error;
+  }
 };
 
 export const signOutFromSupabase = async () => {

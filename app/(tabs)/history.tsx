@@ -10,7 +10,12 @@ import {
   View,
 } from 'react-native';
 import { Session } from '../../types';
-import { clearCloudSessions, deleteCloudSession } from '../../lib/sessionDatabase';
+import { getSupabaseSession } from '../../lib/authDatabase';
+import {
+  clearCloudSessions,
+  deleteCloudSession,
+  loadCloudSessions,
+} from '../../lib/sessionDatabase';
 
 export default function HistoryScreen() {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -24,13 +29,21 @@ export default function HistoryScreen() {
 
   const loadSessions = async () => {
     try {
-      const savedSessions = await AsyncStorage.getItem('sessions');
+      const authSession = await getSupabaseSession();
+      const storageKey = authSession?.user.id
+        ? `sessions:${authSession.user.id}`
+        : 'sessions';
+      const savedSessions = await AsyncStorage.getItem(storageKey);
+      const localSessions: Session[] = savedSessions ? JSON.parse(savedSessions) : [];
+      const cloudSessions = await loadCloudSessions();
 
-      if (savedSessions) {
-        setSessions(JSON.parse(savedSessions));
-      } else {
-        setSessions([]);
-      }
+      const mergedSessions = new Map<number, Session>();
+      localSessions.forEach((session) => mergedSessions.set(session.id, session));
+      cloudSessions?.forEach((session) => mergedSessions.set(session.id, session));
+
+      const restoredSessions = [...mergedSessions.values()].sort((first, second) => second.id - first.id);
+      setSessions(restoredSessions);
+      await AsyncStorage.setItem(storageKey, JSON.stringify(restoredSessions));
     } catch (error) {
       alert('Error loading history');
     }
@@ -38,8 +51,12 @@ export default function HistoryScreen() {
 
   const saveSessions = async (updatedSessions: Session[]) => {
     try {
+      const authSession = await getSupabaseSession();
+      const storageKey = authSession?.user.id
+        ? `sessions:${authSession.user.id}`
+        : 'sessions';
       await AsyncStorage.setItem(
-        'sessions',
+        storageKey,
         JSON.stringify(updatedSessions)
       );
     } catch (error) {
