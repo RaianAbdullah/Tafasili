@@ -94,7 +94,7 @@ export default function LapTracker(props: Props) {
           <TextInput
             style={styles.input}
             placeholder="Route name or location"
-            placeholderTextColor="#20242A"
+            placeholderTextColor="#050505"
             value={props.routeName}
             onChangeText={props.setRouteName}
           />
@@ -102,7 +102,7 @@ export default function LapTracker(props: Props) {
           <TextInput
             style={styles.input}
             placeholder="Goal, example: 5 km easy pace"
-            placeholderTextColor="#20242A"
+            placeholderTextColor="#050505"
             value={props.movementGoal}
             onChangeText={props.setMovementGoal}
           />
@@ -115,7 +115,7 @@ export default function LapTracker(props: Props) {
         <TextInput
           style={styles.scoreInput}
           placeholder="Lap distance"
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={props.lapDistance}
           onChangeText={props.setLapDistance}
           keyboardType="decimal-pad"
@@ -157,7 +157,7 @@ export default function LapTracker(props: Props) {
           <TextInput
             style={styles.input}
             placeholder="Elevation gain"
-            placeholderTextColor="#20242A"
+            placeholderTextColor="#050505"
             value={props.elevationGain}
             onChangeText={props.setElevationGain}
             keyboardType="decimal-pad"
@@ -166,7 +166,7 @@ export default function LapTracker(props: Props) {
           <TextInput
             style={styles.input}
             placeholder="Splits, example: 1km 6:10, 2km 6:05"
-            placeholderTextColor="#20242A"
+            placeholderTextColor="#050505"
             value={props.splitNotes}
             onChangeText={props.setSplitNotes}
             multiline
@@ -175,7 +175,7 @@ export default function LapTracker(props: Props) {
           <TextInput
             style={styles.input}
             placeholder="Personal record note"
-            placeholderTextColor="#20242A"
+            placeholderTextColor="#050505"
             value={props.personalRecord}
             onChangeText={props.setPersonalRecord}
             multiline
@@ -204,14 +204,14 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   detailsTitle: {
-    color: '#20242A',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 14,
   },
   detailsSubtitle: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     marginBottom: 12,
     marginTop: 6,
   },
@@ -221,9 +221,9 @@ const styles = StyleSheet.create({
     borderColor: '#E7E9EE',
     borderRadius: 12,
     padding: 16,
-    fontSize: 16,
+    fontSize: 18,
     marginBottom: 12,
-    color: '#20242A',
+    color: '#050505',
   },
   scoreRow: {
     flexDirection: 'row',
@@ -236,9 +236,9 @@ const styles = StyleSheet.create({
     borderColor: '#E7E9EE',
     borderRadius: 12,
     padding: 16,
-    fontSize: 16,
+    fontSize: 18,
     marginBottom: 12,
-    color: '#20242A',
+    color: '#050505',
   },
   unitButton: {
     backgroundColor: '#E7E9EE',
@@ -254,8 +254,8 @@ const styles = StyleSheet.create({
     borderColor: '#2563EB',
   },
   unitButtonText: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     fontWeight: '800',
   },
   lapBox: {
@@ -266,18 +266,18 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   lapNumber: {
-    color: '#20242A',
-    fontSize: 54,
+    color: '#050505',
+    fontSize: 56,
     fontWeight: 'bold',
   },
   lapLabel: {
-    color: '#20242A',
-    fontSize: 17,
+    color: '#050505',
+    fontSize: 19,
     marginTop: 4,
   },
   totalDistanceText: {
-    color: '#20242A',
-    fontSize: 18,
+    color: '#050505',
+    fontSize: 20,
     fontWeight: '700',
     marginTop: 10,
   },
@@ -295,8 +295,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   buttonText: {
-    color: '#FFFFFF',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: '600',
     textAlign: 'center',
   },

@@ -164,7 +164,7 @@ export default function MatchTracker(props: Props) {
       <TextInput
         style={styles.input}
         placeholder="Team 1 name"
-        placeholderTextColor="#20242A"
+        placeholderTextColor="#050505"
         value={props.matchTeamOneName}
         onChangeText={props.setMatchTeamOneName}
       />
@@ -172,7 +172,7 @@ export default function MatchTracker(props: Props) {
       <TextInput
         style={styles.input}
         placeholder="Team 2 name"
-        placeholderTextColor="#20242A"
+        placeholderTextColor="#050505"
         value={props.matchTeamTwoName}
         onChangeText={props.setMatchTeamTwoName}
       />
@@ -182,7 +182,7 @@ export default function MatchTracker(props: Props) {
       <TextInput
         style={styles.input}
         placeholder="Set number"
-        placeholderTextColor="#20242A"
+        placeholderTextColor="#050505"
         value={props.matchSetNumber}
         onChangeText={props.setMatchSetNumber}
         keyboardType="number-pad"
@@ -192,7 +192,7 @@ export default function MatchTracker(props: Props) {
         <TextInput
           style={styles.scoreInput}
           placeholder="Team 1 games"
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={props.matchTeamOneGames}
           onChangeText={props.setMatchTeamOneGames}
           keyboardType="number-pad"
@@ -201,7 +201,7 @@ export default function MatchTracker(props: Props) {
         <TextInput
           style={styles.scoreInput}
           placeholder="Team 2 games"
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={props.matchTeamTwoGames}
           onChangeText={props.setMatchTeamTwoGames}
           keyboardType="number-pad"
@@ -214,7 +214,7 @@ export default function MatchTracker(props: Props) {
         <TextInput
           style={styles.scoreInput}
           placeholder="Team 1 points"
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={props.matchTeamOnePoints}
           onChangeText={props.setMatchTeamOnePoints}
         />
@@ -222,7 +222,7 @@ export default function MatchTracker(props: Props) {
         <TextInput
           style={styles.scoreInput}
           placeholder="Team 2 points"
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={props.matchTeamTwoPoints}
           onChangeText={props.setMatchTeamTwoPoints}
         />
@@ -248,7 +248,7 @@ export default function MatchTracker(props: Props) {
       <TextInput
         style={styles.input}
         placeholder="Tiebreak score, example: 7-5"
-        placeholderTextColor="#20242A"
+        placeholderTextColor="#050505"
         value={props.matchTiebreakScore}
         onChangeText={props.setMatchTiebreakScore}
       />
@@ -259,7 +259,7 @@ export default function MatchTracker(props: Props) {
         <TextInput
           style={styles.scoreInput}
           placeholder="Team 1 winners"
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={props.matchTeamOneWinners}
           onChangeText={props.setMatchTeamOneWinners}
           keyboardType="number-pad"
@@ -268,7 +268,7 @@ export default function MatchTracker(props: Props) {
         <TextInput
           style={styles.scoreInput}
           placeholder="Team 2 winners"
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={props.matchTeamTwoWinners}
           onChangeText={props.setMatchTeamTwoWinners}
           keyboardType="number-pad"
@@ -279,7 +279,7 @@ export default function MatchTracker(props: Props) {
         <TextInput
           style={styles.scoreInput}
           placeholder="Team 1 errors"
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={props.matchTeamOneErrors}
           onChangeText={props.setMatchTeamOneErrors}
           keyboardType="number-pad"
@@ -288,7 +288,7 @@ export default function MatchTracker(props: Props) {
         <TextInput
           style={styles.scoreInput}
           placeholder="Team 2 errors"
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={props.matchTeamTwoErrors}
           onChangeText={props.setMatchTeamTwoErrors}
           keyboardType="number-pad"
@@ -362,14 +362,14 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   detailsTitle: {
-    color: '#20242A',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 14,
   },
   detailsSubtitle: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     marginBottom: 12,
     marginTop: 6,
   },
@@ -379,9 +379,9 @@ const styles = StyleSheet.create({
     borderColor: '#E7E9EE',
     borderRadius: 12,
     padding: 16,
-    fontSize: 18,
+    fontSize: 20,
     marginBottom: 12,
-    color: '#20242A',
+    color: '#050505',
   },
   scoreRow: {
     flexDirection: 'row',
@@ -394,9 +394,9 @@ const styles = StyleSheet.create({
     borderColor: '#E7E9EE',
     borderRadius: 12,
     padding: 16,
-    fontSize: 16,
+    fontSize: 18,
     marginBottom: 12,
-    color: '#20242A',
+    color: '#050505',
   },
   addExerciseButton: {
     backgroundColor: '#2563EB',
@@ -413,8 +413,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   exerciseListTitle: {
-    color: '#20242A',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 10,
   },
@@ -430,14 +430,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   exerciseName: {
-    color: '#20242A',
-    fontSize: 17,
+    color: '#050505',
+    fontSize: 19,
     fontWeight: '700',
     marginBottom: 4,
   },
   exerciseDetails: {
-    color: '#20242A',
-    fontSize: 14,
+    color: '#050505',
+    fontSize: 16,
     marginBottom: 2,
   },
   serverButton: {
@@ -453,8 +453,8 @@ const styles = StyleSheet.create({
     borderColor: '#2563EB',
   },
   serverButtonText: {
-    color: '#20242A',
-    fontSize: 15,
+    color: '#050505',
+    fontSize: 17,
     fontWeight: '700',
     textAlign: 'center',
   },
@@ -468,9 +468,9 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   exerciseDeleteText: {
-    color: '#20242A',
+    color: '#050505',
     fontWeight: 'bold',
-    fontSize: 15,
+    fontSize: 17,
   },
   matchTotalBox: {
     backgroundColor: '#F6F7F9',
@@ -479,23 +479,23 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   matchTotalTitle: {
-    color: '#20242A',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   matchTotalText: {
-    color: '#20242A',
-    fontSize: 17,
+    color: '#050505',
+    fontSize: 19,
     marginBottom: 4,
   },
   emptyHistory: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
   },
   buttonText: {
-    color: '#FFFFFF',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: '600',
     textAlign: 'center',
   },

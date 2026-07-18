@@ -170,12 +170,17 @@ export default function HomeScreen() {
   const [studyTotalHours, setStudyTotalHours] = useState('');
   const [studyNotes, setStudyNotes] = useState('');
   const [studyCandleSeconds, setStudyCandleSeconds] = useState(0);
+  const [studyCandleDurationSeconds, setStudyCandleDurationSeconds] = useState(
+    STUDY_CANDLE_DURATION_SECONDS
+  );
   const [isStudyCandleRunning, setIsStudyCandleRunning] = useState(false);
   const studyCandleStartedAtRef = useRef<number | null>(null);
   const studyCandleBaseSecondsRef = useRef(0);
   const studyCandleAutoSaveStartedRef = useRef(false);
 
   const [workProjectName, setWorkProjectName] = useState('');
+  const [workCandleHours, setWorkCandleHours] = useState('3');
+  const [workCandleMinutes, setWorkCandleMinutes] = useState('0');
   const [workNotes, setWorkNotes] = useState('');
 
   const [horseRiderName, setHorseRiderName] = useState('');
@@ -261,6 +266,7 @@ export default function HomeScreen() {
     streak: studyStreak,
     totalStudyHours: studyTotalHours,
     notes: studyNotes,
+    candleDurationSeconds: studyCandleDurationSeconds,
     workProjectName,
     workNotes,
     reminderDate,
@@ -280,6 +286,7 @@ export default function HomeScreen() {
     streak: studyStreak,
     totalStudyHours: studyTotalHours,
     notes: studyNotes,
+    candleDurationSeconds: studyCandleDurationSeconds,
     workProjectName,
     workNotes,
     reminderDate,
@@ -381,14 +388,14 @@ export default function HomeScreen() {
 
       const elapsedSinceStart = Math.floor((Date.now() - startedAt) / 1000);
       const elapsedSeconds = Math.min(
-        STUDY_CANDLE_DURATION_SECONDS,
+        studyCandleDurationSeconds,
         studyCandleBaseSecondsRef.current + elapsedSinceStart
       );
 
       setStudyCandleSeconds(elapsedSeconds);
 
       if (
-        elapsedSeconds >= STUDY_CANDLE_DURATION_SECONDS &&
+        elapsedSeconds >= studyCandleDurationSeconds &&
         !studyCandleAutoSaveStartedRef.current
       ) {
         studyCandleAutoSaveStartedRef.current = true;
@@ -401,7 +408,7 @@ export default function HomeScreen() {
     const intervalId = setInterval(updateCandle, 1000);
 
     return () => clearInterval(intervalId);
-  }, [isStudyCandleRunning]);
+  }, [isStudyCandleRunning, studyCandleDurationSeconds]);
 
   const login = async () => {
   if (loginUsername.trim() === '') {
@@ -633,6 +640,10 @@ const logout = async () => {
     return activity === 'Studying';
   };
 
+  const isFocusActivity = (activity: string | null) => {
+    return isStudyingActivity(activity) || isWorkActivity(activity);
+  };
+
   const supportsReminders = (activity: string | null) => {
     return Boolean(activity && ['Gym', 'Horse Riding', 'Studying', 'Work', 'Vehicle Maintenance'].includes(activity));
   };
@@ -651,17 +662,27 @@ const logout = async () => {
 
   const formatStudyCandleRemainingTime = () => {
     return formatStudyCandleDuration(
-      Math.max(0, STUDY_CANDLE_DURATION_SECONDS - studyCandleSeconds)
+      Math.max(0, studyCandleDurationSeconds - studyCandleSeconds)
     );
+  };
+
+  const getConfiguredWorkCandleSeconds = () => {
+    const hours = Number(workCandleHours || 0);
+    const minutes = Number(workCandleMinutes || 0);
+    return Math.min(12 * 60 * 60, Math.max(0, Math.floor(hours * 60 * 60 + minutes * 60)));
   };
 
   const startAnotherStudyCandle = () => {
     const nextStartTime = new Date();
+    const nextDurationSeconds = isWorkActivity(selectedActivity)
+      ? getConfiguredWorkCandleSeconds() || STUDY_CANDLE_DURATION_SECONDS
+      : STUDY_CANDLE_DURATION_SECONDS;
 
     studyCandleBaseSecondsRef.current = 0;
     studyCandleStartedAtRef.current = Date.now();
     studyCandleAutoSaveStartedRef.current = false;
     setStudyCandleSeconds(0);
+    setStudyCandleDurationSeconds(nextDurationSeconds);
     setStartTime(nextStartTime);
     setEndTime(null);
     setIsStudyCandleRunning(true);
@@ -671,8 +692,9 @@ const logout = async () => {
     const snapshot = latestStudySessionRef.current;
     const focusActivity = snapshot.selectedActivity === 'Work' ? 'Work' : 'Studying';
     const completedAt = new Date();
+    const completedDurationSeconds = snapshot.candleDurationSeconds;
     const sessionStart = snapshot.startTime || new Date(
-      completedAt.getTime() - STUDY_CANDLE_DURATION_SECONDS * 1000
+      completedAt.getTime() - completedDurationSeconds * 1000
     );
     const reminder = snapshot.reminderDate.trim() || snapshot.reminderTime.trim() || snapshot.reminderNote.trim()
       ? {
@@ -686,16 +708,18 @@ const logout = async () => {
       activity: focusActivity,
       start: sessionStart.toLocaleTimeString(),
       end: completedAt.toLocaleTimeString(),
-      duration: formatStudyCandleDuration(STUDY_CANDLE_DURATION_SECONDS),
-      durationSeconds: STUDY_CANDLE_DURATION_SECONDS,
+      duration: formatStudyCandleDuration(completedDurationSeconds),
+      durationSeconds: completedDurationSeconds,
       date: completedAt.toLocaleDateString(),
       details: {
         ...(focusActivity === 'Work'
           ? {
               work: {
                 projectName: snapshot.workProjectName.trim(),
-                candleSeconds: STUDY_CANDLE_DURATION_SECONDS,
-                candleTime: formatStudyCandleDuration(STUDY_CANDLE_DURATION_SECONDS),
+                candleSeconds: completedDurationSeconds,
+                candleTime: formatStudyCandleDuration(completedDurationSeconds),
+                candleTargetSeconds: completedDurationSeconds,
+                candleTargetTime: formatStudyCandleDuration(completedDurationSeconds),
                 notes: snapshot.workNotes.trim(),
               },
             }
@@ -708,8 +732,8 @@ const logout = async () => {
                 pomodoroPlan: snapshot.pomodoroPlan.trim(),
                 streak: snapshot.streak.trim(),
                 totalStudyHours: snapshot.totalStudyHours.trim(),
-                candleSeconds: STUDY_CANDLE_DURATION_SECONDS,
-                candleTime: formatStudyCandleDuration(STUDY_CANDLE_DURATION_SECONDS),
+                candleSeconds: completedDurationSeconds,
+                candleTime: formatStudyCandleDuration(completedDurationSeconds),
                 notes: snapshot.notes.trim(),
               },
             }),
@@ -718,9 +742,9 @@ const logout = async () => {
     };
     const updatedSessions = [completedSession, ...snapshot.sessions];
 
-    studyCandleBaseSecondsRef.current = STUDY_CANDLE_DURATION_SECONDS;
+    studyCandleBaseSecondsRef.current = completedDurationSeconds;
     studyCandleStartedAtRef.current = null;
-    setStudyCandleSeconds(STUDY_CANDLE_DURATION_SECONDS);
+    setStudyCandleSeconds(completedDurationSeconds);
     setEndTime(completedAt);
     setSessions(updatedSessions);
     await saveSessionsToStorage(updatedSessions);
@@ -734,7 +758,7 @@ const logout = async () => {
     }
 
     Alert.alert(
-      'Three-hour candle complete',
+      focusActivity === 'Work' ? 'Work candle complete' : 'Three-hour candle complete',
       focusActivity === 'Work'
         ? `Your work session was automatically saved to History. Continue working?${cloudMessage}`
         : `Your study session was automatically saved to History. Continue studying?${cloudMessage}`,
@@ -751,7 +775,16 @@ const logout = async () => {
       return;
     }
 
-    if (studyCandleSeconds >= STUDY_CANDLE_DURATION_SECONDS) {
+    if (selectedActivity === 'Work' && studyCandleSeconds === 0) {
+      const configuredSeconds = getConfiguredWorkCandleSeconds();
+      if (configuredSeconds < 60) {
+        Alert.alert('Candle time required', 'Set a work candle time of at least one minute.');
+        return;
+      }
+      setStudyCandleDurationSeconds(configuredSeconds);
+    }
+
+    if (studyCandleSeconds >= studyCandleDurationSeconds) {
       startAnotherStudyCandle();
       return;
     }
@@ -773,7 +806,7 @@ const logout = async () => {
         (Date.now() - studyCandleStartedAtRef.current) / 1000
       );
       const pausedSeconds = Math.min(
-        STUDY_CANDLE_DURATION_SECONDS,
+        studyCandleDurationSeconds,
         studyCandleBaseSecondsRef.current + elapsedSinceStart
       );
 
@@ -864,12 +897,15 @@ const logout = async () => {
     setStudyTotalHours('');
     setStudyNotes('');
     setStudyCandleSeconds(0);
+    setStudyCandleDurationSeconds(STUDY_CANDLE_DURATION_SECONDS);
     setIsStudyCandleRunning(false);
     studyCandleStartedAtRef.current = null;
     studyCandleBaseSecondsRef.current = 0;
     studyCandleAutoSaveStartedRef.current = false;
 
     setWorkProjectName('');
+    setWorkCandleHours('3');
+    setWorkCandleMinutes('0');
     setWorkNotes('');
 
     setVehicleName('');
@@ -1205,11 +1241,11 @@ if (!isNonTimedActivity(selectedActivity) && (!startTime || !endTime)) {
 }
 
     if (
-      (isStudyingActivity(selectedActivity) || isWorkActivity(selectedActivity)) &&
-      studyCandleSeconds >= STUDY_CANDLE_DURATION_SECONDS &&
+      isFocusActivity(selectedActivity) &&
+      studyCandleSeconds >= studyCandleDurationSeconds &&
       studyCandleAutoSaveStartedRef.current
     ) {
-      alert('This three-hour candle is already saved.');
+      alert('This candle session is already saved.');
       return;
     }
 
@@ -1422,6 +1458,8 @@ if (!isNonTimedActivity(selectedActivity) && (!startTime || !endTime)) {
           projectName: workProjectName.trim(),
           candleSeconds: studyCandleSeconds,
           candleTime: formatStudyCandleElapsedTime(),
+          candleTargetSeconds: studyCandleDurationSeconds,
+          candleTargetTime: formatStudyCandleDuration(studyCandleDurationSeconds),
           notes: workNotes.trim(),
         },
       };
@@ -1945,6 +1983,9 @@ const getGroupedActivities = () => {
             Project: {work.projectName || 'Not filled'}
           </Text>
           <Text style={styles.savedDetailsText}>
+            Set Time: {work.candleTargetTime || 'Not set'}
+          </Text>
+          <Text style={styles.savedDetailsText}>
             Candle Timer: {work.candleTime || '00:00:00'}
           </Text>
           <Text style={styles.savedDetailsText}>
@@ -2237,7 +2278,7 @@ const getGroupedActivities = () => {
         <TextInput
           style={styles.input}
           placeholder={isArabic ? 'البريد الإلكتروني' : 'Email'}
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={loginUsername}
           onChangeText={setLoginUsername}
         />
@@ -2247,7 +2288,7 @@ const getGroupedActivities = () => {
           placeholder={isSignupMode
             ? isArabic ? 'كلمة مرور جديدة' : 'New password'
             : isArabic ? 'كلمة المرور' : 'Password'}
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={loginPassword}
           onChangeText={setLoginPassword}
           secureTextEntry
@@ -2258,7 +2299,7 @@ const getGroupedActivities = () => {
             <TextInput
               style={styles.input}
               placeholder={isArabic ? 'تأكيد كلمة المرور' : 'Confirm password'}
-              placeholderTextColor="#20242A"
+              placeholderTextColor="#050505"
               value={signupRepeatPassword}
               onChangeText={setSignupRepeatPassword}
               secureTextEntry
@@ -2333,9 +2374,15 @@ const getGroupedActivities = () => {
             {activityDisplayName(selectedActivity)}
           </Text>
           <Text style={[styles.subtitle, isArabic && styles.rtlText]}>
-            {isArabic ? 'سجل تفاصيل نشاطك' : 'Track your activity session'}
+            {isFocusActivity(selectedActivity)
+              ? isArabic
+                ? 'حدد التفاصيل واستخدم مؤقت الشمعة'
+                : 'Set the details and use the candle timer'
+              : isArabic
+                ? 'سجل تفاصيل نشاطك'
+                : 'Track your activity session'}
           </Text>
-          {!isNonTimedActivity(selectedActivity) && (
+          {!isNonTimedActivity(selectedActivity) && !isFocusActivity(selectedActivity) && (
           <TouchableOpacity style={[styles.startButton, styles.timerActionButton]} onPress={startActivity}>
           <Text style={styles.timerActionText}>{isArabic ? 'بدء النشاط' : 'Start Activity'}</Text>
         </TouchableOpacity>
@@ -2350,7 +2397,7 @@ const getGroupedActivities = () => {
               <TextInput
                 style={styles.input}
                 placeholder="ID number"
-                placeholderTextColor="#20242A"
+                placeholderTextColor="#050505"
                 value={personalIdNumber}
                 onChangeText={setPersonalIdNumber}
                 secureTextEntry
@@ -2358,21 +2405,21 @@ const getGroupedActivities = () => {
               <TextInput
                 style={styles.input}
                 placeholder="ID expiration date"
-                placeholderTextColor="#20242A"
+                placeholderTextColor="#050505"
                 value={personalIdExpirationDate}
                 onChangeText={setPersonalIdExpirationDate}
               />
               <TextInput
                 style={styles.input}
                 placeholder="Driving license expiration date"
-                placeholderTextColor="#20242A"
+                placeholderTextColor="#050505"
                 value={personalDlExpirationDate}
                 onChangeText={setPersonalDlExpirationDate}
               />
               <TextInput
                 style={styles.input}
                 placeholder="Passport number"
-                placeholderTextColor="#20242A"
+                placeholderTextColor="#050505"
                 value={personalPassportNumber}
                 onChangeText={setPersonalPassportNumber}
                 secureTextEntry
@@ -2381,7 +2428,7 @@ const getGroupedActivities = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Passport expiration date"
-                placeholderTextColor="#20242A"
+                placeholderTextColor="#050505"
                 value={personalPassportExpirationDate}
                 onChangeText={setPersonalPassportExpirationDate}
               />
@@ -2396,7 +2443,7 @@ const getGroupedActivities = () => {
                   key={field}
                   style={styles.input}
                   placeholder={field}
-                  placeholderTextColor="#20242A"
+                  placeholderTextColor="#050505"
                   value={customFieldValues[field] || ''}
                   onChangeText={(value) =>
                     setCustomFieldValues((currentValues) => ({
@@ -2512,7 +2559,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Subject, example: Math"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={studySubject}
       onChangeText={setStudySubject}
     />
@@ -2520,7 +2567,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Study type, example: Exam, coursework, review"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={studyType}
       onChangeText={setStudyType}
     />
@@ -2528,7 +2575,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Exam date, example: 20/08/2026"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={studyExamDate}
       onChangeText={setStudyExamDate}
     />
@@ -2536,7 +2583,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Coursework, example: Chapter 4 assignment"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={studyCoursework}
       onChangeText={setStudyCoursework}
     />
@@ -2544,7 +2591,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Pomodoro plan, example: 25/5 x 4"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={studyPomodoroPlan}
       onChangeText={setStudyPomodoroPlan}
     />
@@ -2552,7 +2599,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Study streak, example: 5 days"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={studyStreak}
       onChangeText={setStudyStreak}
     />
@@ -2560,7 +2607,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Total study hours"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={studyTotalHours}
       onChangeText={setStudyTotalHours}
       keyboardType="decimal-pad"
@@ -2568,7 +2615,7 @@ const getGroupedActivities = () => {
 
     <View style={styles.candleBox}>
       <View style={styles.candleVisual}>
-        {studyCandleSeconds < STUDY_CANDLE_DURATION_SECONDS && (
+        {studyCandleSeconds < studyCandleDurationSeconds && (
           <View style={[styles.candleFlame, isStudyCandleRunning && styles.candleFlameActive]}>
             <View style={styles.candleFlameCore} />
           </View>
@@ -2579,12 +2626,12 @@ const getGroupedActivities = () => {
             {
               height: Math.max(
                 3,
-                82 * (1 - studyCandleSeconds / STUDY_CANDLE_DURATION_SECONDS)
+                82 * (1 - studyCandleSeconds / Math.max(1, studyCandleDurationSeconds))
               ),
             },
           ]}
         >
-          {studyCandleSeconds < STUDY_CANDLE_DURATION_SECONDS && (
+          {studyCandleSeconds < studyCandleDurationSeconds && (
             <>
               <View style={styles.candleWick} />
               <View style={styles.candleWaxLip} />
@@ -2599,7 +2646,7 @@ const getGroupedActivities = () => {
         <View
           style={[
             styles.candleProgressFill,
-            { width: `${Math.min(100, (studyCandleSeconds / STUDY_CANDLE_DURATION_SECONDS) * 100)}%` },
+            { width: `${Math.min(100, (studyCandleSeconds / Math.max(1, studyCandleDurationSeconds)) * 100)}%` },
           ]}
         />
       </View>
@@ -2622,7 +2669,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Study notes"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={studyNotes}
       onChangeText={setStudyNotes}
       multiline
@@ -2637,14 +2684,41 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder={isArabic ? 'اسم المشروع' : 'Project name'}
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={workProjectName}
       onChangeText={setWorkProjectName}
     />
 
+    <View style={styles.candleTimeSettingRow}>
+      <View style={styles.candleTimeSettingField}>
+        <Text style={styles.candleTimeSettingLabel}>{isArabic ? 'الساعات' : 'Hours'}</Text>
+        <TextInput
+          style={[styles.input, styles.candleTimeSettingInput]}
+          placeholder="0"
+          placeholderTextColor="#050505"
+          value={workCandleHours}
+          onChangeText={setWorkCandleHours}
+          keyboardType="number-pad"
+          editable={!isStudyCandleRunning && studyCandleSeconds === 0}
+        />
+      </View>
+      <View style={styles.candleTimeSettingField}>
+        <Text style={styles.candleTimeSettingLabel}>{isArabic ? 'الدقائق' : 'Minutes'}</Text>
+        <TextInput
+          style={[styles.input, styles.candleTimeSettingInput]}
+          placeholder="0"
+          placeholderTextColor="#050505"
+          value={workCandleMinutes}
+          onChangeText={setWorkCandleMinutes}
+          keyboardType="number-pad"
+          editable={!isStudyCandleRunning && studyCandleSeconds === 0}
+        />
+      </View>
+    </View>
+
     <View style={styles.candleBox}>
       <View style={styles.candleVisual}>
-        {studyCandleSeconds < STUDY_CANDLE_DURATION_SECONDS && (
+        {studyCandleSeconds < studyCandleDurationSeconds && (
           <View style={[styles.candleFlame, isStudyCandleRunning && styles.candleFlameActive]}>
             <View style={styles.candleFlameCore} />
           </View>
@@ -2655,12 +2729,12 @@ const getGroupedActivities = () => {
             {
               height: Math.max(
                 3,
-                82 * (1 - studyCandleSeconds / STUDY_CANDLE_DURATION_SECONDS)
+                82 * (1 - studyCandleSeconds / Math.max(1, studyCandleDurationSeconds))
               ),
             },
           ]}
         >
-          {studyCandleSeconds < STUDY_CANDLE_DURATION_SECONDS && (
+          {studyCandleSeconds < studyCandleDurationSeconds && (
             <>
               <View style={styles.candleWick} />
               <View style={styles.candleWaxLip} />
@@ -2671,13 +2745,13 @@ const getGroupedActivities = () => {
       </View>
       <Text style={styles.candleTime}>{formatStudyCandleRemainingTime()}</Text>
       <Text style={styles.candleHint}>
-        {isArabic ? 'تركيز للعمل لمدة ثلاث ساعات' : 'Three-hour work focus'}
+        {isArabic ? 'حدد وقت العمل ثم ابدأ الشمعة' : 'Set the work time, then start the candle'}
       </Text>
       <View style={styles.candleProgressTrack}>
         <View
           style={[
             styles.candleProgressFill,
-            { width: `${Math.min(100, (studyCandleSeconds / STUDY_CANDLE_DURATION_SECONDS) * 100)}%` },
+            { width: `${Math.min(100, (studyCandleSeconds / Math.max(1, studyCandleDurationSeconds)) * 100)}%` },
           ]}
         />
       </View>
@@ -2700,7 +2774,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder={isArabic ? 'ملاحظات العمل' : 'Work notes'}
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={workNotes}
       onChangeText={setWorkNotes}
       multiline
@@ -2800,7 +2874,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Vehicle name, example: Indian Motorcycle"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={vehicleName}
       onChangeText={setVehicleName}
     />
@@ -2808,7 +2882,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Plate number"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={vehiclePlateNumber}
       onChangeText={setVehiclePlateNumber}
     />
@@ -2816,7 +2890,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Model / Year, example: Camry 2022"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={vehicleModelYear}
       onChangeText={setVehicleModelYear}
     />
@@ -2839,7 +2913,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Service date, example: 2026-07-17"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={vehicleServiceDate}
       onChangeText={setVehicleServiceDate}
     />
@@ -2847,7 +2921,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Mileage / KM"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={vehicleMileage}
       onChangeText={setVehicleMileage}
       keyboardType="numeric"
@@ -2856,7 +2930,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Cost"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={vehicleCost}
       onChangeText={setVehicleCost}
       keyboardType="numeric"
@@ -2865,7 +2939,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Shop / place name"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={vehicleShopName}
       onChangeText={setVehicleShopName}
     />
@@ -2875,7 +2949,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Next service date"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={vehicleNextServiceDate}
       onChangeText={setVehicleNextServiceDate}
     />
@@ -2883,7 +2957,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Next service mileage / KM"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={vehicleNextServiceMileage}
       onChangeText={setVehicleNextServiceMileage}
       keyboardType="numeric"
@@ -2892,7 +2966,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Insurance expiration date"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={vehicleInsuranceExpirationDate}
       onChangeText={setVehicleInsuranceExpirationDate}
     />
@@ -2900,7 +2974,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Registration end date"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={vehicleRegistrationEndDate}
       onChangeText={setVehicleRegistrationEndDate}
     />
@@ -2908,7 +2982,7 @@ const getGroupedActivities = () => {
     <TextInput
       style={styles.input}
       placeholder="Notes"
-      placeholderTextColor="#20242A"
+      placeholderTextColor="#050505"
       value={vehicleNotes}
       onChangeText={setVehicleNotes}
       multiline
@@ -2922,21 +2996,21 @@ const getGroupedActivities = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Reminder date, example: 2026-08-01"
-                placeholderTextColor="#20242A"
+                placeholderTextColor="#050505"
                 value={reminderDate}
                 onChangeText={setReminderDate}
               />
               <TextInput
                 style={styles.input}
                 placeholder="Reminder time, example: 18:30"
-                placeholderTextColor="#20242A"
+                placeholderTextColor="#050505"
                 value={reminderTime}
                 onChangeText={setReminderTime}
               />
               <TextInput
                 style={styles.input}
                 placeholder="What should Tafasili remind you about?"
-                placeholderTextColor="#20242A"
+                placeholderTextColor="#050505"
                 value={reminderNote}
                 onChangeText={setReminderNote}
                 multiline
@@ -2944,13 +3018,13 @@ const getGroupedActivities = () => {
             </View>
           )}
 
-          {!isNonTimedActivity(selectedActivity) && (
+          {!isNonTimedActivity(selectedActivity) && !isFocusActivity(selectedActivity) && (
   <TouchableOpacity style={[styles.endButton, styles.timerActionButton]} onPress={endActivity}>
     <Text style={styles.timerActionText}>End Activity</Text>
   </TouchableOpacity>
 )}
 
-          {!isNonTimedActivity(selectedActivity) && (
+          {!isNonTimedActivity(selectedActivity) && !isFocusActivity(selectedActivity) && (
   <View style={styles.infoBox}>
     <Text style={styles.infoText}>
       Start: {startTime ? startTime.toLocaleTimeString() : 'Not started'}
@@ -3130,7 +3204,7 @@ const getGroupedActivities = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Example: Boxing"
-                placeholderTextColor="#20242A"
+                placeholderTextColor="#050505"
                 value={otherActivityName}
                 onChangeText={setOtherActivityName}
               />
@@ -3142,7 +3216,7 @@ const getGroupedActivities = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Example: Location, Score, Notes"
-                placeholderTextColor="#20242A"
+                placeholderTextColor="#050505"
                 value={otherActivityFields}
                 onChangeText={setOtherActivityFields}
                 multiline
@@ -3196,20 +3270,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   backButtonText: {
-    color: '#20242A',
-    fontSize: 18,
+    color: '#050505',
+    fontSize: 20,
     fontWeight: '600',
   },
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#20242A',
+    color: '#050505',
     marginTop: 60,
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#20242A',
+    fontSize: 18,
+    color: '#050505',
     marginBottom: 14,
   },
   homeTopbar: {
@@ -3221,9 +3295,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   homeHeading: {
-    color: '#20242A',
-    fontSize: 20,
-    lineHeight: 25,
+    color: '#050505',
+    fontSize: 22,
+    lineHeight: 27,
     fontWeight: '800',
     marginBottom: 8,
   },
@@ -3244,13 +3318,13 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   brandLogo: {
-    width: 60,
-    height: 76,
+    width: 62,
+    height: 78,
   },
   brandEnglish: {
-    color: '#20242A',
-    fontSize: 16,
-    lineHeight: 18,
+    color: '#050505',
+    fontSize: 18,
+    lineHeight: 20,
     fontWeight: '900',
     textAlign: 'center',
   },
@@ -3269,8 +3343,8 @@ const styles = StyleSheet.create({
     width: 76,
   },
   languageButtonText: {
-    color: '#20242A',
-    fontSize: 14,
+    color: '#050505',
+    fontSize: 18,
     fontWeight: '800',
   },
   rtlText: {
@@ -3286,8 +3360,8 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   statsTitle: {
-    color: '#20242A',
-    fontSize: 18,
+    color: '#050505',
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 14,
   },
@@ -3295,18 +3369,18 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   statLabel: {
-    color: '#20242A',
-    fontSize: 15,
+    color: '#050505',
+    fontSize: 17,
     marginBottom: 3,
   },
   statValue: {
-    color: '#20242A',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: '700',
   },
   hintText: {
-    color: '#20242A',
-    fontSize: 14,
+    color: '#050505',
+    fontSize: 18,
     marginBottom: 12,
   },
   topActions: {
@@ -3329,8 +3403,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   smallActionText: {
-    color: '#20242A',
-    fontSize: 15,
+    color: '#050505',
+    fontSize: 17,
     fontWeight: '700',
     textAlign: 'center',
   },
@@ -3339,8 +3413,8 @@ const styles = StyleSheet.create({
 },
 
 activityGroupTitle: {
-  color: '#20242A',
-  fontSize: 16,
+  color: '#050505',
+  fontSize: 18,
   fontWeight: 'bold',
   marginBottom: 12,
 },
@@ -3368,8 +3442,8 @@ activityGroupTitle: {
     backgroundColor: '#EFF6FF',
   },
   categoryCount: {
-    color: '#20242A',
-    fontSize: 14,
+    color: '#050505',
+    fontSize: 16,
     marginTop: 5,
   },
   activityButton: {
@@ -3381,8 +3455,8 @@ activityGroupTitle: {
     marginBottom: 12,
   },
   activityText: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     fontWeight: '600',
   },
   swipeDeleteAction: {
@@ -3394,8 +3468,8 @@ activityGroupTitle: {
     marginBottom: 12,
   },
   swipeDeleteText: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     fontWeight: '700',
   },
   addExerciseButton: {
@@ -3425,8 +3499,8 @@ activityGroupTitle: {
     marginBottom: 12,
   },
   exerciseListTitle: {
-    color: '#20242A',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 10,
   },
@@ -3442,8 +3516,8 @@ activityGroupTitle: {
     flex: 1,
   },
   exerciseName: {
-    color: '#20242A',
-    fontSize: 17,
+    color: '#050505',
+    fontSize: 19,
     fontWeight: '700',
     marginBottom: 4,
   },
@@ -3457,9 +3531,9 @@ activityGroupTitle: {
     marginLeft: 10,
   },
   exerciseDeleteText: {
-    color: '#20242A',
+    color: '#050505',
     fontWeight: 'bold',
-    fontSize: 15,
+    fontSize: 17,
   },
 
   balootTotalBox: {
@@ -3475,13 +3549,13 @@ activityGroupTitle: {
     alignItems: 'center',
   },
   balootSideTitle: {
-    color: '#20242A',
-    fontSize: 18,
+    color: '#050505',
+    fontSize: 20,
     marginBottom: 8,
   },
   balootTotalNumber: {
-    color: '#20242A',
-    fontSize: 42,
+    color: '#050505',
+    fontSize: 44,
     fontWeight: 'bold',
   },
   winnerBox: {
@@ -3491,13 +3565,13 @@ activityGroupTitle: {
     marginBottom: 16,
   },
   winnerLabel: {
-    color: '#20242A',
-    fontSize: 15,
+    color: '#050505',
+    fontSize: 17,
     marginBottom: 4,
   },
   winnerText: {
-    color: '#20242A',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: 'bold',
   },
   dealerBox: {
@@ -3508,19 +3582,19 @@ activityGroupTitle: {
     marginBottom: 16,
   },
   dealerTitle: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     marginBottom: 8,
   },
   dealerArrow: {
-    color: '#20242A',
-    fontSize: 64,
+    color: '#050505',
+    fontSize: 66,
     fontWeight: 'bold',
     marginBottom: 4,
   },
   dealerHint: {
-    color: '#20242A',
-    fontSize: 14,
+    color: '#050505',
+    fontSize: 16,
   },
   startButton: {
     backgroundColor: '#2563EB',
@@ -3547,8 +3621,8 @@ activityGroupTitle: {
     borderColor: '#D0D5DD',
   },
   timerActionText: {
-    color: '#20242A',
-    fontSize: 18,
+    color: '#050505',
+    fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
   },
@@ -3558,8 +3632,8 @@ activityGroupTitle: {
     borderRadius: 12,
   },
   buttonText: {
-    color: '#FFFFFF',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -3572,13 +3646,13 @@ activityGroupTitle: {
     marginBottom: 18,
   },
   infoText: {
-    color: '#20242A',
-    fontSize: 17,
+    color: '#050505',
+    fontSize: 19,
     marginBottom: 10,
   },
   durationText: {
-    color: '#20242A',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: 'bold',
     marginTop: 8,
   },
@@ -3596,14 +3670,14 @@ activityGroupTitle: {
     padding: 24,
   },
   modalTitle: {
-    color: '#20242A',
-    fontSize: 24,
+    color: '#050505',
+    fontSize: 26,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   modalSubtitle: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     marginBottom: 18,
   },
   input: {
@@ -3612,9 +3686,9 @@ activityGroupTitle: {
     borderColor: '#E7E9EE',
     borderRadius: 12,
     padding: 16,
-    fontSize: 18,
+    fontSize: 20,
     marginBottom: 12,
-    color: '#20242A',
+    color: '#050505',
   },
   candleBox: {
     alignItems: 'center',
@@ -3622,6 +3696,22 @@ activityGroupTitle: {
     borderRadius: 14,
     padding: 18,
     marginBottom: 12,
+  },
+  candleTimeSettingRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  candleTimeSettingField: {
+    flex: 1,
+  },
+  candleTimeSettingLabel: {
+    color: '#050505',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  candleTimeSettingInput: {
+    width: '100%',
   },
   candleVisual: {
     alignItems: 'center',
@@ -3692,16 +3782,16 @@ activityGroupTitle: {
     backgroundColor: '#fffaf0',
   },
   candleTime: {
-    color: '#20242A',
-    fontSize: 36,
+    color: '#050505',
+    fontSize: 38,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   candleHint: {
-    color: '#20242A',
-    fontSize: 14,
+    color: '#050505',
+    fontSize: 16,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 22,
   },
   candleProgressTrack: {
     width: '100%',
@@ -3746,13 +3836,13 @@ historyFilterButtonActive: {
 },
 
 historyFilterText: {
-  color: '#20242A',
-  fontSize: 14,
+  color: '#050505',
+  fontSize: 16,
   fontWeight: '600',
 },
 
 historyFilterTextActive: {
-  color: '#FFFFFF',
+  color: '#050505',
 },
   historySection: {
     marginTop: 10,
@@ -3765,8 +3855,8 @@ historyFilterTextActive: {
     marginBottom: 12,
   },
   historyTitle: {
-    color: '#20242A',
-    fontSize: 24,
+    color: '#050505',
+    fontSize: 26,
     fontWeight: 'bold',
   },
   clearHistoryButton: {
@@ -3776,13 +3866,13 @@ historyFilterTextActive: {
     borderRadius: 10,
   },
   clearHistoryText: {
-    color: '#20242A',
-    fontSize: 14,
+    color: '#050505',
+    fontSize: 16,
     fontWeight: '600',
   },
   emptyHistory: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
   },
   sessionCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.24)',
@@ -3793,19 +3883,19 @@ historyFilterTextActive: {
     marginBottom: 12,
   },
   sessionActivity: {
-    color: '#20242A',
-    fontSize: 22,
+    color: '#050505',
+    fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   sessionText: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     marginBottom: 4,
   },
   sessionDuration: {
-    color: '#20242A',
-    fontSize: 17,
+    color: '#050505',
+    fontSize: 19,
     fontWeight: 'bold',
     marginTop: 6,
   },
@@ -3816,20 +3906,20 @@ historyFilterTextActive: {
     borderRadius: 10,
   },
   savedDetailsHeader: {
-    color: '#20242A',
-    fontSize: 17,
+    color: '#050505',
+    fontSize: 19,
     fontWeight: 'bold',
     marginTop: 8,
     marginBottom: 4,
   },
   savedDetailsText: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     marginBottom: 4,
   },
   savedSetText: {
-    color: '#20242A',
-    fontSize: 15,
+    color: '#050505',
+    fontSize: 17,
     marginLeft: 12,
     marginBottom: 3,
   },
@@ -3843,29 +3933,29 @@ historyFilterTextActive: {
   justifyContent: 'center',
 },
 loginTitle: {
-  fontSize: 22,
+  fontSize: 24,
   fontWeight: 'bold',
-  color: '#20242A',
+  color: '#050505',
   marginBottom: 8,
   textAlign: 'center',
 },
 loginTagline: {
-  fontSize: 16,
-  color: '#20242A',
+  fontSize: 18,
+  color: '#050505',
   fontWeight: '800',
-  lineHeight: 22,
+  lineHeight: 24,
   marginBottom: 12,
   textAlign: 'center',
 },
 loginSubtitle: {
-  fontSize: 18,
-  color: '#20242A',
+  fontSize: 20,
+  color: '#050505',
   marginBottom: 30,
   textAlign: 'center',
 },
 loginHint: {
-  color: '#20242A',
-  fontSize: 14,
+  color: '#050505',
+  fontSize: 16,
   textAlign: 'center',
   marginTop: 12,
 },
@@ -3886,7 +3976,7 @@ authModeButtonActive: {
   borderColor: '#D0D5DD',
 },
 authModeText: {
-  color: '#20242A',
+  color: '#050505',
   fontWeight: '800',
   textAlign: 'center',
 },
@@ -3896,19 +3986,19 @@ authSubmitButton: {
   borderColor: '#D0D5DD',
 },
 authSubmitText: {
-  color: '#20242A',
-  fontSize: 18,
+  color: '#050505',
+  fontSize: 20,
   fontWeight: '700',
   textAlign: 'center',
 },
 signupHelp: {
-  color: '#20242A',
-  fontSize: 14,
+  color: '#050505',
+  fontSize: 16,
   marginBottom: 22,
 },
 signupDivider: {
-  color: '#20242A',
-  fontSize: 16,
+  color: '#050505',
+  fontSize: 18,
   textAlign: 'center',
   marginBottom: 12,
 },
@@ -3921,8 +4011,8 @@ secondaryAuthButton: {
   marginBottom: 12,
 },
 secondaryAuthButtonText: {
-  color: '#20242A',
-  fontSize: 16,
+  color: '#050505',
+  fontSize: 18,
   fontWeight: '800',
   textAlign: 'center',
 },
@@ -3934,8 +4024,8 @@ socialButton: {
   marginBottom: 12,
 },
 socialButtonText: {
-  color: '#20242A',
-  fontSize: 16,
+  color: '#050505',
+  fontSize: 18,
   fontWeight: '800',
   textAlign: 'center',
 },
@@ -3948,20 +4038,20 @@ logoutButton: {
   marginBottom: 20,
 },
 logoutButtonText: {
-  color: '#20242A',
-  fontSize: 16,
+  color: '#050505',
+  fontSize: 18,
   fontWeight: '700',
   textAlign: 'center',
 },
 homeDescription: {
-  color: '#20242A',
-  fontSize: 14,
-  lineHeight: 22,
+  color: '#050505',
+  fontSize: 16,
+  lineHeight: 24,
   marginBottom: 20,
 },
 homeWelcome: {
-  color: '#20242A',
-  fontSize: 14,
+  color: '#050505',
+  fontSize: 16,
 },
 sessionTopRow: {
   flexDirection: 'row',
@@ -3978,20 +4068,20 @@ activityBadge: {
 },
 
 activityBadgeText: {
-  color: '#FFFFFF',
-  fontSize: 14,
+  color: '#050505',
+  fontSize: 16,
   fontWeight: '700',
 },
 
 sessionDate: {
-  color: '#20242A',
-  fontSize: 14,
+  color: '#050505',
+  fontSize: 16,
   fontWeight: '600',
 },
 
 sessionDurationLarge: {
-  color: '#20242A',
-  fontSize: 24,
+  color: '#050505',
+  fontSize: 26,
   fontWeight: 'bold',
   marginBottom: 10,
 },
@@ -4006,8 +4096,8 @@ sessionTimeRow: {
 },
 
 sessionTimeText: {
-  color: '#20242A',
-  fontSize: 14,
+  color: '#050505',
+  fontSize: 16,
   fontWeight: '600',
 },
 selectedOptionButton: {

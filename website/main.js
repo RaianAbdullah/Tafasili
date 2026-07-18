@@ -308,6 +308,7 @@ const state = {
   gymRestSeconds: 0,
   gymRestTimerId: null,
   studyCandleSeconds: 0,
+  studyCandleDurationSeconds: STUDY_CANDLE_DURATION_SECONDS,
   studyCandleRunning: false,
   studyCandleTimerId: null,
   studyCandleStartedAt: null,
@@ -575,6 +576,10 @@ function workText(key) {
       title: 'Work Focus',
       projectName: 'Project name',
       projectPlaceholder: 'Tafasili website',
+      candleHours: 'Candle hours',
+      candleMinutes: 'Candle minutes',
+      candleHint: 'Set the work time, then start the candle.',
+      candleTimeRequired: 'Set a candle time of at least one minute.',
       notes: 'Work notes',
       projectRequired: 'Please enter project name.',
     },
@@ -582,6 +587,10 @@ function workText(key) {
       title: 'تركيز العمل',
       projectName: 'اسم المشروع',
       projectPlaceholder: 'موقع تفاصيلي',
+      candleHours: 'ساعات الشمعة',
+      candleMinutes: 'دقائق الشمعة',
+      candleHint: 'حدد وقت العمل ثم ابدأ الشمعة.',
+      candleTimeRequired: 'حدد وقتاً لا يقل عن دقيقة واحدة.',
       notes: 'ملاحظات العمل',
       projectRequired: 'أدخل اسم المشروع.',
     },
@@ -1138,8 +1147,13 @@ function openTracker(activity) {
       ? text('trackerVehicle')
       : activity === 'Personal Info'
         ? text('trackerRecord')
+        : activity === 'Studying' || activity === 'Work'
+          ? state.language === 'ar'
+            ? 'حدد التفاصيل واستخدم مؤقت الشمعة ثم احفظ الجلسة.'
+            : 'Set the details, use the candle timer, then save the session.'
       : text('trackerTimed');
   trackerView.classList.toggle('vehicle-mode', isNonTimedActivity(activity));
+  trackerView.classList.toggle('focus-mode', activity === 'Studying' || activity === 'Work');
   activityFields.innerHTML = getFieldsForActivity(activity);
   bindConditionalFields();
   if (activity === 'Studying' || activity === 'Work') {
@@ -1155,6 +1169,11 @@ function openTracker(activity) {
     bindBalootCalculator();
   }
   sessionForm.reset();
+  if (activity === 'Work') {
+    sessionForm.querySelector('[name="workCandleHours"]').value = '3';
+    sessionForm.querySelector('[name="workCandleMinutes"]').value = '0';
+    state.studyCandleDurationSeconds = STUDY_CANDLE_DURATION_SECONDS;
+  }
   if (activity === 'Studying' || activity === 'Work') {
     renderStudyCandle();
   }
@@ -1607,10 +1626,12 @@ function getFieldsForActivity(activity) {
       <div class="study-focus">
         <header>
           <h2>${workText('title')}</h2>
-          <p>${state.language === 'ar' ? 'تركيز للعمل لمدة ثلاث ساعات' : 'Three-hour work focus'}</p>
+          <p>${workText('candleHint')}</p>
         </header>
         <div class="field-grid">
           ${inputField(workText('projectName'), 'projectName', workText('projectPlaceholder'))}
+          ${inputField(workText('candleHours'), 'workCandleHours', '3', 'number')}
+          ${inputField(workText('candleMinutes'), 'workCandleMinutes', '0', 'number')}
         </div>
         ${focusCandleMarkup('work')}
         ${textAreaField(workText('notes'), 'notes', workText('notes'), true)}
@@ -1628,10 +1649,10 @@ function getFieldsForActivity(activity) {
 function focusCandleMarkup(mode) {
   const isWork = mode === 'work';
   const candleHint = isWork
-    ? state.language === 'ar' ? 'تركيز للعمل لمدة ثلاث ساعات' : 'Three-hour work focus'
+    ? workText('candleHint')
     : studyText('candleHint');
   const completeText = isWork
-    ? state.language === 'ar' ? 'تم حفظ جلسة العمل لمدة ثلاث ساعات تلقائياً. هل تريد متابعة العمل؟' : 'Your three-hour work session was automatically saved. Continue working?'
+    ? state.language === 'ar' ? 'تم حفظ جلسة العمل تلقائياً. هل تريد متابعة العمل؟' : 'Your work session was automatically saved. Continue working?'
     : studyText('candleComplete');
   const finishText = isWork
     ? state.language === 'ar' ? 'ليس الآن' : 'Not now'
@@ -1781,7 +1802,13 @@ function formatStudyCandleElapsedTime() {
 }
 
 function formatStudyCandleRemainingTime() {
-  return formatDuration(Math.max(0, STUDY_CANDLE_DURATION_SECONDS - state.studyCandleSeconds));
+  return formatDuration(Math.max(0, state.studyCandleDurationSeconds - state.studyCandleSeconds));
+}
+
+function getConfiguredWorkCandleSeconds() {
+  const hours = Number(sessionForm.querySelector('[name="workCandleHours"]')?.value || 0);
+  const minutes = Number(sessionForm.querySelector('[name="workCandleMinutes"]')?.value || 0);
+  return Math.min(12 * 60 * 60, Math.max(0, Math.floor(hours * 60 * 60 + minutes * 60)));
 }
 
 function resetStudyCandle() {
@@ -1790,6 +1817,10 @@ function resetStudyCandle() {
   }
 
   state.studyCandleSeconds = 0;
+  state.studyCandleDurationSeconds =
+    state.selectedActivity === 'Work'
+      ? getConfiguredWorkCandleSeconds() || STUDY_CANDLE_DURATION_SECONDS
+      : STUDY_CANDLE_DURATION_SECONDS;
   state.studyCandleRunning = false;
   state.studyCandleTimerId = null;
   state.studyCandleStartedAt = null;
@@ -1806,6 +1837,14 @@ function bindStudyCandle() {
   document.querySelector('#study-candle-finish')?.addEventListener('click', () => {
     document.querySelector('#study-candle-complete')?.classList.add('hidden');
   });
+  sessionForm.querySelectorAll('[name="workCandleHours"], [name="workCandleMinutes"]').forEach((input) => {
+    input.addEventListener('input', () => {
+      if (!state.studyCandleRunning && state.studyCandleSeconds === 0) {
+        state.studyCandleDurationSeconds = getConfiguredWorkCandleSeconds();
+        renderStudyCandle();
+      }
+    });
+  });
 }
 
 function startStudyCandle() {
@@ -1817,7 +1856,18 @@ function startStudyCandle() {
     return;
   }
 
-  if (state.studyCandleSeconds >= STUDY_CANDLE_DURATION_SECONDS) {
+  if (state.selectedActivity === 'Work') {
+    const configuredSeconds = getConfiguredWorkCandleSeconds();
+    if (configuredSeconds < 60) {
+      sessionMessage.textContent = workText('candleTimeRequired');
+      return;
+    }
+    if (state.studyCandleSeconds === 0) {
+      state.studyCandleDurationSeconds = configuredSeconds;
+    }
+  }
+
+  if (state.studyCandleSeconds >= state.studyCandleDurationSeconds) {
     startAnotherStudyCandle();
     return;
   }
@@ -1868,13 +1918,13 @@ function updateStudyCandle(allowAutoSave = true) {
 
   const elapsedSinceStart = Math.floor((Date.now() - state.studyCandleStartedAt) / 1000);
   state.studyCandleSeconds = Math.min(
-    STUDY_CANDLE_DURATION_SECONDS,
+    state.studyCandleDurationSeconds,
     state.studyCandleBaseSeconds + elapsedSinceStart
   );
 
   if (
     allowAutoSave &&
-    state.studyCandleSeconds >= STUDY_CANDLE_DURATION_SECONDS &&
+    state.studyCandleSeconds >= state.studyCandleDurationSeconds &&
     !state.studyCandleAutoSaved
   ) {
     autoSaveCompletedStudyCandle();
@@ -1887,15 +1937,16 @@ function updateStudyCandle(allowAutoSave = true) {
 function autoSaveCompletedStudyCandle() {
   const completedAt = new Date(
     state.studyCandleStartedAt +
-      (STUDY_CANDLE_DURATION_SECONDS - state.studyCandleBaseSeconds) * 1000
+      (state.studyCandleDurationSeconds - state.studyCandleBaseSeconds) * 1000
   );
 
-  state.studyCandleSeconds = STUDY_CANDLE_DURATION_SECONDS;
-  state.studyCandleBaseSeconds = STUDY_CANDLE_DURATION_SECONDS;
+  const completedDurationSeconds = state.studyCandleDurationSeconds;
+  state.studyCandleSeconds = completedDurationSeconds;
+  state.studyCandleBaseSeconds = completedDurationSeconds;
   state.studyCandleStartedAt = null;
   state.studyCandleRunning = false;
   state.endTime = completedAt;
-  state.startTime = new Date(completedAt.getTime() - STUDY_CANDLE_DURATION_SECONDS * 1000);
+  state.startTime = new Date(completedAt.getTime() - completedDurationSeconds * 1000);
 
   if (state.studyCandleTimerId) {
     window.clearInterval(state.studyCandleTimerId);
@@ -1925,7 +1976,12 @@ function startAnotherStudyCandle() {
 }
 
 function renderStudyCandle() {
-  const progress = Math.min(1, state.studyCandleSeconds / STUDY_CANDLE_DURATION_SECONDS);
+  const progress = Math.min(
+    1,
+    state.studyCandleDurationSeconds > 0
+      ? state.studyCandleSeconds / state.studyCandleDurationSeconds
+      : 0
+  );
   const candleBody = document.querySelector('#study-candle-body');
   const flame = document.querySelector('#study-candle-flame');
 
@@ -1942,6 +1998,10 @@ function renderStudyCandle() {
   if (progressFill) {
     progressFill.style.width = `${progress * 100}%`;
   }
+
+  sessionForm.querySelectorAll('[name="workCandleHours"], [name="workCandleMinutes"]').forEach((input) => {
+    input.disabled = state.studyCandleRunning || state.studyCandleSeconds > 0;
+  });
 
   document.querySelector('#study-candle-complete')?.classList.toggle(
     'hidden',
@@ -2546,7 +2606,7 @@ async function saveSession(event) {
   }
 
   if ((activity === 'Studying' || activity === 'Work') && state.studyCandleAutoSaved) {
-    sessionMessage.textContent = 'This three-hour candle is already saved.';
+    sessionMessage.textContent = 'This candle session is already saved.';
     return;
   }
 
@@ -2647,6 +2707,8 @@ function getSessionDetails() {
         projectName: sessionForm.querySelector('[name="projectName"]').value.trim(),
         candleSeconds: state.studyCandleSeconds,
         candleTime: formatStudyCandleElapsedTime(),
+        candleTargetSeconds: state.studyCandleDurationSeconds,
+        candleTargetTime: formatDuration(state.studyCandleDurationSeconds),
         notes: sessionForm.querySelector('[name="notes"]').value.trim(),
       },
     };
@@ -3000,6 +3062,7 @@ function renderSessionDetails(session) {
 
     return `
       <div><span>${workText('projectName')}</span>${escapeHtml(work.projectName || text('noDetails'))}</div>
+      <div><span>${state.language === 'ar' ? 'الوقت المحدد' : 'Set time'}</span>${escapeHtml(work.candleTargetTime || text('noDetails'))}</div>
       <div><span>${studyText('candleTimer')}</span>${escapeHtml(work.candleTime || '00:00:00')}</div>
       <div><span>${workText('notes')}</span>${escapeHtml(work.notes || text('noDetails'))}</div>
     `;

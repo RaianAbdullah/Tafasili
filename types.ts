@@ -100,6 +100,8 @@ export type WorkDetails = {
   projectName?: string;
   candleSeconds?: number;
   candleTime?: string;
+  candleTargetSeconds?: number;
+  candleTargetTime?: string;
   notes?: string;
 };
 

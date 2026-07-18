@@ -34,7 +34,7 @@ export default function FootballTracker(props: Props) {
       <TextInput
         style={styles.input}
         placeholder="Team 1 name"
-        placeholderTextColor="#20242A"
+        placeholderTextColor="#050505"
         value={props.footballTeamOneName}
         onChangeText={props.setFootballTeamOneName}
       />
@@ -42,7 +42,7 @@ export default function FootballTracker(props: Props) {
       <TextInput
         style={styles.input}
         placeholder="Team 2 name"
-        placeholderTextColor="#20242A"
+        placeholderTextColor="#050505"
         value={props.footballTeamTwoName}
         onChangeText={props.setFootballTeamTwoName}
       />
@@ -51,7 +51,7 @@ export default function FootballTracker(props: Props) {
         <TextInput
           style={styles.scoreInput}
           placeholder="Team 1 score"
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={props.footballTeamOneScore}
           onChangeText={props.setFootballTeamOneScore}
           keyboardType="number-pad"
@@ -60,7 +60,7 @@ export default function FootballTracker(props: Props) {
         <TextInput
           style={styles.scoreInput}
           placeholder="Team 2 score"
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={props.footballTeamTwoScore}
           onChangeText={props.setFootballTeamTwoScore}
           keyboardType="number-pad"
@@ -80,8 +80,8 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   detailsTitle: {
-    color: '#20242A',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 14,
   },
@@ -91,9 +91,9 @@ const styles = StyleSheet.create({
     borderColor: '#E7E9EE',
     borderRadius: 12,
     padding: 16,
-    fontSize: 18,
+    fontSize: 20,
     marginBottom: 12,
-    color: '#20242A',
+    color: '#050505',
   },
   scoreRow: {
     flexDirection: 'row',
@@ -106,8 +106,8 @@ const styles = StyleSheet.create({
     borderColor: '#E7E9EE',
     borderRadius: 12,
     padding: 16,
-    fontSize: 16,
+    fontSize: 18,
     marginBottom: 12,
-    color: '#20242A',
+    color: '#050505',
   },
 });

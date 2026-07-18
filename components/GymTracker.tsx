@@ -183,7 +183,7 @@ export default function GymTracker(props: Props) {
       <TextInput
         style={styles.input}
         placeholder="Exercise name, example: Bench Press"
-        placeholderTextColor="#20242A"
+        placeholderTextColor="#050505"
         value={props.gymExerciseName}
         onChangeText={props.setGymExerciseName}
       />
@@ -192,7 +192,7 @@ export default function GymTracker(props: Props) {
         <TextInput
           style={styles.scoreInput}
           placeholder="Weight"
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={props.gymSetWeight}
           onChangeText={props.setGymSetWeight}
           keyboardType="decimal-pad"
@@ -201,7 +201,7 @@ export default function GymTracker(props: Props) {
         <TextInput
           style={styles.scoreInput}
           placeholder="Set reps"
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={props.gymSetReps}
           onChangeText={props.setGymSetReps}
           keyboardType="number-pad"
@@ -328,14 +328,14 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   detailsTitle: {
-    color: '#20242A',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 14,
   },
   detailsSubtitle: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     marginBottom: 12,
     marginTop: 6,
   },
@@ -345,9 +345,9 @@ const styles = StyleSheet.create({
     borderColor: '#E7E9EE',
     borderRadius: 12,
     padding: 16,
-    fontSize: 18,
+    fontSize: 20,
     marginBottom: 12,
-    color: '#20242A',
+    color: '#050505',
   },
   workoutGrid: {
     flexDirection: 'row',
@@ -365,12 +365,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#2563EB',
   },
   workoutButtonText: {
-    color: '#20242A',
-    fontSize: 15,
+    color: '#050505',
+    fontSize: 17,
     fontWeight: '600',
   },
   selectedWorkoutButtonText: {
-    color: '#FFFFFF',
+    color: '#050505',
     fontWeight: '800',
   },
   scoreRow: {
@@ -384,9 +384,9 @@ const styles = StyleSheet.create({
     borderColor: '#E7E9EE',
     borderRadius: 12,
     padding: 16,
-    fontSize: 16,
+    fontSize: 18,
     marginBottom: 12,
-    color: '#20242A',
+    color: '#050505',
   },
   addSetButton: {
     backgroundColor: '#2563EB',
@@ -397,8 +397,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addSetText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     fontWeight: '800',
   },
   restTimerBox: {
@@ -408,14 +408,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   restTimerTitle: {
-    color: '#20242A',
-    fontSize: 18,
+    color: '#050505',
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   restTimerValue: {
-    color: '#20242A',
-    fontSize: 34,
+    color: '#050505',
+    fontSize: 36,
     fontWeight: 'bold',
     marginBottom: 10,
   },
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   restButtonText: {
-    color: '#20242A',
+    color: '#050505',
     textAlign: 'center',
     fontWeight: '700',
   },
@@ -451,8 +451,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   exerciseListTitle: {
-    color: '#20242A',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 10,
   },
@@ -468,14 +468,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   exerciseName: {
-    color: '#20242A',
-    fontSize: 17,
+    color: '#050505',
+    fontSize: 19,
     fontWeight: '700',
     marginBottom: 4,
   },
   exerciseDetails: {
-    color: '#20242A',
-    fontSize: 15,
+    color: '#050505',
+    fontSize: 17,
     marginBottom: 2,
   },
   exerciseDeleteButton: {
@@ -488,17 +488,17 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   exerciseDeleteText: {
-    color: '#20242A',
+    color: '#050505',
     fontWeight: 'bold',
-    fontSize: 15,
+    fontSize: 17,
   },
   emptyHistory: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
   },
   buttonText: {
-    color: '#FFFFFF',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: '600',
     textAlign: 'center',
   },

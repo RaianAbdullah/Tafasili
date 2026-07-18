@@ -169,7 +169,7 @@ export default function HomeScreen() {
             <TextInput
               style={styles.input}
               placeholder="Example: Boxing"
-              placeholderTextColor="#20242A"
+              placeholderTextColor="#050505"
               value={otherActivityName}
               onChangeText={setOtherActivityName}
             />
@@ -214,20 +214,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   backButtonText: {
-    color: '#20242A',
-    fontSize: 18,
+    color: '#050505',
+    fontSize: 20,
     fontWeight: '600',
   },
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#20242A',
+    color: '#050505',
     marginTop: 60,
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 15,
-    color: '#20242A',
+    fontSize: 17,
+    color: '#050505',
     marginBottom: 24,
   },
   activityList: {
@@ -245,8 +245,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#E7E9EE',
   },
   activityText: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     fontWeight: '600',
   },
   startButton: {
@@ -279,8 +279,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   buttonText: {
-    color: '#20242A',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -292,13 +292,13 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   infoText: {
-    color: '#20242A',
-    fontSize: 17,
+    color: '#050505',
+    fontSize: 19,
     marginBottom: 10,
   },
   durationText: {
-    color: '#20242A',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: 'bold',
     marginTop: 8,
   },
@@ -316,14 +316,14 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   modalTitle: {
-    color: '#20242A',
-    fontSize: 24,
+    color: '#050505',
+    fontSize: 26,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   modalSubtitle: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     marginBottom: 18,
   },
   input: {
@@ -332,8 +332,8 @@ const styles = StyleSheet.create({
     borderColor: '#E7E9EE',
     borderRadius: 12,
     padding: 16,
-    fontSize: 18,
+    fontSize: 20,
     marginBottom: 18,
-    color: '#20242A',
+    color: '#050505',
   },
 });

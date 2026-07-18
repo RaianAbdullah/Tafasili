@@ -463,6 +463,9 @@ export default function HistoryScreen() {
             Project: {work.projectName || 'Not filled'}
           </Text>
           <Text style={styles.detailsText}>
+            Set Time: {work.candleTargetTime || 'Not set'}
+          </Text>
+          <Text style={styles.detailsText}>
             Candle Timer: {work.candleTime || '00:00:00'}
           </Text>
           <Text style={styles.detailsText}>
@@ -747,7 +750,7 @@ export default function HistoryScreen() {
   return (
     <ScrollView style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={() => router.replace('/')}>
-        <Ionicons name="arrow-back" size={20} color="#20242A" />
+        <Ionicons name="arrow-back" size={20} color="#050505" />
         <Text style={styles.backButtonText}>Back</Text>
       </TouchableOpacity>
 
@@ -941,7 +944,7 @@ export default function HistoryScreen() {
               value={editDate}
               onChangeText={setEditDate}
               placeholder="YYYY-MM-DD"
-              placeholderTextColor="#20242A"
+              placeholderTextColor="#050505"
             />
             <Text style={styles.editLabel}>History note</Text>
             <TextInput
@@ -949,7 +952,7 @@ export default function HistoryScreen() {
               value={editNote}
               onChangeText={setEditNote}
               placeholder="Add a note"
-              placeholderTextColor="#20242A"
+              placeholderTextColor="#050505"
               multiline
             />
             <View style={styles.modalActions}>
@@ -999,20 +1002,20 @@ const styles = StyleSheet.create({
   },
 
   backButtonText: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     fontWeight: '600',
   },
 
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#20242A',
+    color: '#050505',
   },
 
   subtitle: {
-    fontSize: 15,
-    color: '#20242A',
+    fontSize: 17,
+    color: '#050505',
     marginBottom: 24,
   },
 
@@ -1024,8 +1027,8 @@ const styles = StyleSheet.create({
   },
 
   clearButtonText: {
-    color: '#20242A',
-    fontSize: 14,
+    color: '#050505',
+    fontSize: 16,
     fontWeight: '700',
   },
 
@@ -1043,8 +1046,8 @@ const styles = StyleSheet.create({
   },
 
   progressTitle: {
-    color: '#20242A',
-    fontSize: 18,
+    color: '#050505',
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 12,
   },
@@ -1063,25 +1066,25 @@ const styles = StyleSheet.create({
   },
 
   progressLabel: {
-    color: '#20242A',
-    fontSize: 13,
+    color: '#050505',
+    fontSize: 15,
     marginBottom: 5,
   },
 
   progressValue: {
-    color: '#20242A',
-    fontSize: 17,
+    color: '#050505',
+    fontSize: 19,
     fontWeight: 'bold',
   },
 
   progressMeta: {
-    color: '#20242A',
-    fontSize: 13,
+    color: '#050505',
+    fontSize: 15,
   },
 
   progressSectionTitle: {
-    color: '#20242A',
-    fontSize: 15,
+    color: '#050505',
+    fontSize: 17,
     fontWeight: 'bold',
     marginBottom: 10,
   },
@@ -1097,8 +1100,8 @@ const styles = StyleSheet.create({
   },
 
   progressActivityName: {
-    color: '#20242A',
-    fontSize: 14,
+    color: '#050505',
+    fontSize: 16,
     fontWeight: '600',
   },
 
@@ -1131,18 +1134,18 @@ const styles = StyleSheet.create({
   },
 
   filterText: {
-    color: '#20242A',
-    fontSize: 14,
+    color: '#050505',
+    fontSize: 16,
     fontWeight: '600',
   },
 
   filterTextActive: {
-    color: '#FFFFFF',
+    color: '#050505',
   },
 
   emptyText: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
   },
 
   card: {
@@ -1169,20 +1172,20 @@ const styles = StyleSheet.create({
   },
 
   badgeText: {
-    color: '#FFFFFF',
-    fontSize: 14,
+    color: '#050505',
+    fontSize: 16,
     fontWeight: '700',
   },
 
   dateText: {
-    color: '#20242A',
-    fontSize: 14,
+    color: '#050505',
+    fontSize: 16,
     fontWeight: '600',
   },
 
   durationText: {
-    color: '#20242A',
-    fontSize: 24,
+    color: '#050505',
+    fontSize: 26,
     fontWeight: 'bold',
     marginBottom: 10,
   },
@@ -1196,8 +1199,8 @@ const styles = StyleSheet.create({
   },
 
   timeText: {
-    color: '#20242A',
-    fontSize: 14,
+    color: '#050505',
+    fontSize: 16,
     fontWeight: '600',
   },
 
@@ -1209,23 +1212,23 @@ const styles = StyleSheet.create({
   },
 
   detailsTitle: {
-    color: '#20242A',
-    fontSize: 18,
+    color: '#050505',
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 8,
   },
 
   detailsSectionTitle: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     fontWeight: 'bold',
     marginTop: 10,
     marginBottom: 5,
   },
 
   detailsText: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     fontWeight: '700',
     marginBottom: 4,
   },
@@ -1235,8 +1238,8 @@ const styles = StyleSheet.create({
   },
 
   setText: {
-    color: '#20242A',
-    fontSize: 15,
+    color: '#050505',
+    fontSize: 17,
     marginLeft: 12,
     marginBottom: 3,
   },
@@ -1255,8 +1258,8 @@ const styles = StyleSheet.create({
   },
 
   editButtonText: {
-    color: '#20242A',
-    fontSize: 15,
+    color: '#050505',
+    fontSize: 17,
     fontWeight: '700',
     textAlign: 'center',
   },
@@ -1269,8 +1272,8 @@ const styles = StyleSheet.create({
   },
 
   deleteButtonText: {
-    color: '#20242A',
-    fontSize: 15,
+    color: '#050505',
+    fontSize: 17,
     fontWeight: '700',
     textAlign: 'center',
   },
@@ -1291,15 +1294,15 @@ const styles = StyleSheet.create({
   },
 
   editModalTitle: {
-    color: '#20242A',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 18,
   },
 
   editLabel: {
-    color: '#20242A',
-    fontSize: 15,
+    color: '#050505',
+    fontSize: 17,
     fontWeight: '700',
     marginBottom: 7,
   },
@@ -1311,8 +1314,8 @@ const styles = StyleSheet.create({
     borderColor: '#D0D5DD',
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     marginBottom: 16,
   },
 

@@ -173,7 +173,7 @@ export default function BalootTracker(props: Props) {
         <TextInput
           style={styles.scoreInput}
           placeholder="Us team name"
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={props.balootUsName}
           onChangeText={props.setBalootUsName}
         />
@@ -181,7 +181,7 @@ export default function BalootTracker(props: Props) {
         <TextInput
           style={styles.scoreInput}
           placeholder="Them team name"
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={props.balootThemName}
           onChangeText={props.setBalootThemName}
         />
@@ -216,7 +216,7 @@ export default function BalootTracker(props: Props) {
         <TextInput
           style={styles.scoreInput}
           placeholder="Us"
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={props.balootUsScore}
           onChangeText={props.setBalootUsScore}
           keyboardType="number-pad"
@@ -225,7 +225,7 @@ export default function BalootTracker(props: Props) {
         <TextInput
           style={styles.scoreInput}
           placeholder="Them"
-          placeholderTextColor="#20242A"
+          placeholderTextColor="#050505"
           value={props.balootThemScore}
           onChangeText={props.setBalootThemScore}
           keyboardType="number-pad"
@@ -282,14 +282,14 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   detailsTitle: {
-    color: '#20242A',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 14,
   },
   detailsSubtitle: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     marginBottom: 12,
     marginTop: 6,
   },
@@ -304,9 +304,9 @@ const styles = StyleSheet.create({
     borderColor: '#E7E9EE',
     borderRadius: 12,
     padding: 16,
-    fontSize: 16,
+    fontSize: 18,
     marginBottom: 12,
-    color: '#20242A',
+    color: '#050505',
   },
   addExerciseButton: {
     backgroundColor: '#2563EB',
@@ -340,13 +340,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   balootSideTitle: {
-    color: '#20242A',
-    fontSize: 18,
+    color: '#050505',
+    fontSize: 20,
     marginBottom: 8,
   },
   balootTotalNumber: {
-    color: '#20242A',
-    fontSize: 42,
+    color: '#050505',
+    fontSize: 44,
     fontWeight: 'bold',
   },
   winnerBox: {
@@ -356,13 +356,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   winnerLabel: {
-    color: '#20242A',
-    fontSize: 15,
+    color: '#050505',
+    fontSize: 17,
     marginBottom: 4,
   },
   winnerText: {
-    color: '#20242A',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: 'bold',
   },
   dealerBox: {
@@ -373,19 +373,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   dealerTitle: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
     marginBottom: 8,
   },
   dealerArrow: {
-    color: '#20242A',
-    fontSize: 64,
+    color: '#050505',
+    fontSize: 66,
     fontWeight: 'bold',
     marginBottom: 4,
   },
   dealerHint: {
-    color: '#20242A',
-    fontSize: 14,
+    color: '#050505',
+    fontSize: 16,
   },
   exerciseListBox: {
     backgroundColor: '#F6F7F9',
@@ -395,8 +395,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   exerciseListTitle: {
-    color: '#20242A',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 10,
   },
@@ -412,8 +412,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   exerciseName: {
-    color: '#20242A',
-    fontSize: 17,
+    color: '#050505',
+    fontSize: 19,
     fontWeight: '700',
     marginBottom: 4,
   },
@@ -427,17 +427,17 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   exerciseDeleteText: {
-    color: '#20242A',
+    color: '#050505',
     fontWeight: 'bold',
-    fontSize: 15,
+    fontSize: 17,
   },
   emptyHistory: {
-    color: '#20242A',
-    fontSize: 16,
+    color: '#050505',
+    fontSize: 18,
   },
   buttonText: {
-    color: '#FFFFFF',
-    fontSize: 20,
+    color: '#050505',
+    fontSize: 22,
     fontWeight: '600',
     textAlign: 'center',
   },
