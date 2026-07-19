@@ -139,6 +139,7 @@ export default function HomeScreen() {
   const [showRepeatPassword, setShowRepeatPassword] = useState(false);
   const [activities, setActivities] = useState<string[]>(defaultActivities);
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
+  const [selectedActivityCategory, setSelectedActivityCategory] = useState<string | null>(null);
   const [isActivityDropdownOpen, setIsActivityDropdownOpen] = useState(false);
 
   const [showOtherModal, setShowOtherModal] = useState(false);
@@ -3250,42 +3251,72 @@ const getGroupedActivities = () => {
             <Text style={[styles.activityGroupTitle, isArabic && styles.rtlText]}>
               {isArabic ? 'أنواع الأنشطة' : 'Activity Types'}
             </Text>
-            <View style={styles.activityDropdown}>
+            {getGroupedActivities().map((group) => (
               <TouchableOpacity
-                style={styles.activityDropdownTrigger}
-                onPress={() => setIsActivityDropdownOpen((isOpen) => !isOpen)}
-                accessibilityRole="button"
-                accessibilityState={{ expanded: isActivityDropdownOpen }}
+                key={group.groupName}
+                style={[
+                  styles.categoryButton,
+                  selectedActivityCategory === group.groupName && styles.categoryButtonActive,
+                  isArabic && styles.categoryButtonRtl,
+                ]}
+                onPress={() => {
+                  setSelectedActivityCategory(group.groupName);
+                  setIsActivityDropdownOpen(false);
+                }}
               >
-                <Text style={[styles.activityDropdownTriggerText, isArabic && styles.rtlText]}>
-                  {isArabic ? 'اختر نوع النشاط' : 'Choose an activity type'}
-                </Text>
-                <Text style={styles.activityDropdownChevron}>
-                  {isActivityDropdownOpen ? '▲' : '▼'}
-                </Text>
+                <View>
+                  <Text style={[styles.activityText, isArabic && styles.rtlText]}>
+                    {groupDisplayName(group.groupName)}
+                  </Text>
+                  <Text style={[styles.categoryCount, isArabic && styles.rtlText]}>
+                    {group.groupActivities.length}{' '}
+                    {isArabic
+                      ? group.groupActivities.length === 1 ? 'نشاط' : 'أنشطة'
+                      : group.groupActivities.length === 1 ? 'activity' : 'activities'}
+                  </Text>
+                </View>
               </TouchableOpacity>
+            ))}
 
-              {isActivityDropdownOpen && (
-                <View style={styles.activityDropdownMenu}>
-                  {getGroupedActivities().map((group) => (
-                    <View key={group.groupName}>
-                      <Text style={[styles.activityDropdownGroupTitle, isArabic && styles.rtlText]}>
-                        {groupDisplayName(group.groupName)}
+            {selectedActivityCategory && (
+              <>
+                <Text style={[styles.activityGroupTitle, isArabic && styles.rtlText]}>
+                  {groupDisplayName(selectedActivityCategory)}
+                </Text>
+
+                {selectedActivityCategory === 'Custom Activities' && (
+                  <TouchableOpacity style={styles.addButton} onPress={openOtherModal}>
+                    <Text style={styles.smallActionText}>
+                      {isArabic ? '+ إضافة نشاط مخصص' : '+ Add Custom Activity'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+
+                {activities.filter((activity) => getActivityGroup(activity) === selectedActivityCategory).length === 0 ? (
+                  <Text style={[styles.emptyHistory, isArabic && styles.rtlText]}>
+                    {isArabic ? 'لا توجد أنشطة في هذه الفئة بعد.' : 'No activities in this category yet.'}
+                  </Text>
+                ) : (
+                  <View style={styles.activityDropdown}>
+                    <TouchableOpacity
+                      style={styles.activityDropdownTrigger}
+                      onPress={() => setIsActivityDropdownOpen((isOpen) => !isOpen)}
+                      accessibilityRole="button"
+                      accessibilityState={{ expanded: isActivityDropdownOpen }}
+                    >
+                      <Text style={[styles.activityDropdownTriggerText, isArabic && styles.rtlText]}>
+                        {isArabic ? 'اختر نشاطاً' : 'Choose an activity'}
                       </Text>
-                      {group.groupName === 'Custom Activities' && (
-                        <TouchableOpacity
-                          style={styles.activityDropdownAddOption}
-                          onPress={() => {
-                            setIsActivityDropdownOpen(false);
-                            openOtherModal();
-                          }}
-                        >
-                          <Text style={[styles.activityDropdownOptionText, isArabic && styles.rtlText]}>
-                            {isArabic ? '+ إضافة نشاط مخصص' : '+ Add Custom Activity'}
-                          </Text>
-                        </TouchableOpacity>
-                      )}
-                      {group.groupActivities.map((activity) => (
+                      <Text style={styles.activityDropdownChevron}>
+                        {isActivityDropdownOpen ? '▲' : '▼'}
+                      </Text>
+                    </TouchableOpacity>
+
+                    {isActivityDropdownOpen && (
+                      <View style={styles.activityDropdownMenu}>
+                        {activities
+                          .filter((activity) => getActivityGroup(activity) === selectedActivityCategory)
+                          .map((activity) => (
                         <View key={activity} style={styles.activityDropdownOptionRow}>
                           <TouchableOpacity
                             style={styles.activityDropdownOption}
@@ -3307,12 +3338,13 @@ const getGroupedActivities = () => {
                             <Text style={styles.activityDropdownDeleteText}>×</Text>
                           </TouchableOpacity>
                         </View>
-                      ))}
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
+                          ))}
+                      </View>
+                    )}
+                  </View>
+                )}
+              </>
+            )}
 
             <TouchableOpacity style={styles.resetButton} onPress={resetActivityList}>
               <Text style={styles.smallActionText}>

@@ -1135,33 +1135,53 @@ function renderHome() {
 
   customActivityForm.classList.toggle('collapsed', state.selectedCategory !== 'custom');
 
-  const activityGroups = [
-    ...activitySections,
-    { key: 'custom', activities: state.customActivities },
+  const categories = [
+    ...activitySections.map((section) => ({
+      key: section.key,
+      count: section.activities.length,
+    })),
+    { key: 'custom', count: state.customActivities.length },
   ];
+  const selectedSection = activitySections.find((section) => section.key === state.selectedCategory);
+  const selectedActivities = state.selectedCategory === 'custom'
+    ? state.customActivities
+    : selectedSection?.activities || [];
 
   activityGrid.innerHTML = `
     <section class="activity-section">
-      <label class="activity-dropdown-label">
-        <span>${state.language === 'ar' ? 'أنواع الأنشطة' : 'Activity types'}</span>
-        <select data-activity-select>
-          <option value="">${state.language === 'ar' ? 'اختر نوع النشاط' : 'Choose an activity type'}</option>
-          ${activityGroups
+      <h2>${state.language === 'ar' ? 'أنواع الأنشطة' : 'Activity types'}</h2>
+      <div class="activity-section-grid category-grid">
+        ${categories
           .map(
-            (group) => `
-              <optgroup label="${escapeHtml(translations[state.language].sections[group.key])}">
-                ${group.key === 'custom'
-                  ? `<option value="__add_custom__">${state.language === 'ar' ? '+ إضافة نشاط مخصص' : '+ Add Custom Activity'}</option>`
-                  : ''}
-                ${group.activities
-                  .map(
-                    (activity) => `<option value="${escapeHtml(activity)}">${escapeHtml(activityLabel(activity))}</option>`
-                  )
-                  .join('')}
-              </optgroup>
+            (category) => `
+              <button class="activity-card category-card${state.selectedCategory === category.key ? ' active' : ''}" type="button" data-category="${category.key}">
+                <strong>${translations[state.language].sections[category.key]}</strong>
+                <span>${category.count} ${state.language === 'ar' ? category.count === 1 ? 'نشاط' : 'أنشطة' : category.count === 1 ? 'activity' : 'activities'}</span>
+              </button>
             `
           )
           .join('')}
+      </div>
+    </section>
+    ${state.selectedCategory ? renderActivitySection(state.selectedCategory, selectedActivities) : ''}
+  `;
+}
+
+function renderActivitySection(sectionKey, activities) {
+  return `
+    <section class="activity-section">
+      <h2>${translations[state.language].sections[sectionKey]}</h2>
+      <label class="activity-dropdown-label">
+        <span>${state.language === 'ar' ? 'اختر نشاطاً' : 'Choose an activity'}</span>
+        <select data-activity-select ${activities.length ? '' : 'disabled'}>
+          <option value="">${activities.length
+            ? state.language === 'ar' ? 'اختر من القائمة' : 'Select from the list'
+            : state.language === 'ar' ? 'لا توجد أنشطة بعد' : 'No activities yet'}</option>
+          ${activities
+            .map(
+              (activity) => `<option value="${escapeHtml(activity)}">${escapeHtml(activityLabel(activity))}</option>`
+            )
+            .join('')}
         </select>
       </label>
     </section>
@@ -3622,6 +3642,7 @@ backButton.addEventListener('click', () => {
 document.addEventListener('click', (event) => {
   const viewButton = event.target.closest('[data-view]');
   const activityButton = event.target.closest('[data-activity]');
+  const categoryButton = event.target.closest('[data-category]');
   const editButton = event.target.closest('[data-edit-session]');
   const deleteButton = event.target.closest('[data-delete-session]');
 
@@ -3632,6 +3653,11 @@ document.addEventListener('click', (event) => {
 
   if (activityButton) {
     openTracker(activityButton.dataset.activity);
+  }
+
+  if (categoryButton) {
+    state.selectedCategory = categoryButton.dataset.category;
+    renderHome();
   }
 
   if (editButton) {
@@ -3658,12 +3684,6 @@ document.addEventListener('click', (event) => {
 
 activityGrid.addEventListener('change', (event) => {
   const activitySelect = event.target.closest('[data-activity-select]');
-
-  if (activitySelect?.value === '__add_custom__') {
-    state.selectedCategory = 'custom';
-    renderHome();
-    return;
-  }
 
   if (activitySelect?.value) {
     openTracker(activitySelect.value);
