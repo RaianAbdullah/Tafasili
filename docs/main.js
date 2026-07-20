@@ -723,9 +723,9 @@ function accountStorageKey(baseKey, userId = state.userId) {
 
 function restorePersistentData() {
   const savedSessions = readJson(accountStorageKey(storageKeys.sessions), []);
-  const savedActivities = readJson(storageKeys.customActivities, []);
-  const savedTemplates = readJson(storageKeys.customTemplates, {});
-  const savedGroups = readJson(storageKeys.customGroups, {});
+  const savedActivities = readJson(accountStorageKey(storageKeys.customActivities), []);
+  const savedTemplates = readJson(accountStorageKey(storageKeys.customTemplates), {});
+  const savedGroups = readJson(accountStorageKey(storageKeys.customGroups), {});
 
   state.sessions = Array.isArray(savedSessions) ? savedSessions : [];
   state.customActivities = Array.isArray(savedActivities) ? savedActivities : [];
@@ -819,6 +819,108 @@ async function restoreCloudHistory(userId) {
   localStorage.setItem(migrationKey, 'true');
 }
 
+function customActivityToCloudRow(name, userId, templates, groups) {
+  const categoryAliases = {
+    'Sports and Games': 'sports',
+    'Fitness and Movement': 'fitness',
+    'Horse Activities': 'horse',
+    'Study and Work': 'study',
+    'Life Tracking': 'life',
+    'Vehicle and Maintenance': 'vehicle',
+  };
+
+  return {
+    user_id: userId,
+    name,
+    category: categoryAliases[groups[name]] || groups[name] || 'life',
+    fields: templates[name] || ['Session title', 'Notes'],
+    updated_at: new Date().toISOString(),
+  };
+}
+
+async function saveCustomActivityToCloud(name) {
+  if (!cloudClient || !state.userId) {
+    throw new Error('Cloud account is not available.');
+  }
+
+  const { error } = await cloudClient
+    .from('custom_activities')
+    .upsert(
+      customActivityToCloudRow(name, state.userId, state.customTemplates, state.customGroups),
+      { onConflict: 'user_id,name' }
+    );
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function restoreCloudCustomActivities(userId) {
+  const activitiesKey = accountStorageKey(storageKeys.customActivities, userId);
+  const templatesKey = accountStorageKey(storageKeys.customTemplates, userId);
+  const groupsKey = accountStorageKey(storageKeys.customGroups, userId);
+  const migrationKey = `tafasili-custom-activities-migrated:${userId}`;
+  const scopedActivities = readJson(activitiesKey, []);
+  const scopedTemplates = readJson(templatesKey, {});
+  const scopedGroups = readJson(groupsKey, {});
+  const shouldMigrateLegacy = !localStorage.getItem(migrationKey);
+  const legacyActivities = shouldMigrateLegacy ? readJson(storageKeys.customActivities, []) : [];
+  const legacyTemplates = shouldMigrateLegacy ? readJson(storageKeys.customTemplates, {}) : {};
+  const legacyGroups = shouldMigrateLegacy ? readJson(storageKeys.customGroups, {}) : {};
+  const localNames = [...new Set([...scopedActivities, ...legacyActivities])];
+  const localTemplates = { ...legacyTemplates, ...scopedTemplates };
+  const localGroups = { ...legacyGroups, ...scopedGroups };
+
+  if (localNames.length > 0) {
+    const { error: migrationError } = await cloudClient
+      .from('custom_activities')
+      .upsert(
+        localNames.map((name) => customActivityToCloudRow(name, userId, localTemplates, localGroups)),
+        { onConflict: 'user_id,name' }
+      );
+
+    if (migrationError) {
+      throw migrationError;
+    }
+  }
+
+  const { data, error } = await cloudClient
+    .from('custom_activities')
+    .select('name,category,fields')
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  const mergedActivities = new Map();
+  localNames.forEach((name) => {
+    mergedActivities.set(name, {
+      category: localGroups[name] || 'life',
+      fields: localTemplates[name] || ['Session title', 'Notes'],
+    });
+  });
+  (data || []).forEach((activity) => {
+    mergedActivities.set(activity.name, {
+      category: activity.category,
+      fields: Array.isArray(activity.fields) ? activity.fields : [],
+    });
+  });
+
+  state.customActivities = [...mergedActivities.keys()];
+  state.customTemplates = Object.fromEntries(
+    [...mergedActivities].map(([name, activity]) => [name, activity.fields])
+  );
+  state.customGroups = Object.fromEntries(
+    [...mergedActivities].map(([name, activity]) => [name, activity.category])
+  );
+  writeJson(activitiesKey, state.customActivities);
+  writeJson(templatesKey, state.customTemplates);
+  writeJson(groupsKey, state.customGroups);
+  localStorage.setItem(migrationKey, 'true');
+}
+
 async function completeCloudSignIn(user) {
   state.userId = user.id;
   state.userEmail = user.email || user.phone || '';
@@ -829,6 +931,12 @@ async function completeCloudSignIn(user) {
     await restoreCloudHistory(user.id);
   } catch {
     authMessage.textContent = 'Signed in. Cloud history will retry when your connection returns.';
+  }
+
+  try {
+    await restoreCloudCustomActivities(user.id);
+  } catch {
+    authMessage.textContent = 'Signed in. Custom activities will sync after the database update is applied.';
   }
 
   showView('home');
@@ -3643,9 +3751,9 @@ facebookSignupButton.addEventListener('click', () => {
 logoutButton.addEventListener('click', async () => {
   stopTimer();
   writeJson(accountStorageKey(storageKeys.sessions), state.sessions);
-  writeJson(storageKeys.customActivities, state.customActivities);
-  writeJson(storageKeys.customTemplates, state.customTemplates);
-  writeJson(storageKeys.customGroups, state.customGroups);
+  writeJson(accountStorageKey(storageKeys.customActivities), state.customActivities);
+  writeJson(accountStorageKey(storageKeys.customTemplates), state.customTemplates);
+  writeJson(accountStorageKey(storageKeys.customGroups), state.customGroups);
   await cloudClient?.auth.signOut();
   state.userId = null;
   state.userEmail = null;
@@ -3708,7 +3816,7 @@ document.addEventListener('click', (event) => {
   }
 });
 
-customActivityForm.addEventListener('submit', (event) => {
+customActivityForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const formData = new FormData(customActivityForm);
   const customActivity = String(formData.get('customActivity') || '').trim();
@@ -3732,9 +3840,17 @@ customActivityForm.addEventListener('submit', (event) => {
     ...state.customGroups,
     [customActivity]: customCategory,
   };
-  writeJson(storageKeys.customActivities, state.customActivities);
-  writeJson(storageKeys.customTemplates, state.customTemplates);
-  writeJson(storageKeys.customGroups, state.customGroups);
+  writeJson(accountStorageKey(storageKeys.customActivities), state.customActivities);
+  writeJson(accountStorageKey(storageKeys.customTemplates), state.customTemplates);
+  writeJson(accountStorageKey(storageKeys.customGroups), state.customGroups);
+
+  try {
+    await saveCustomActivityToCloud(customActivity);
+  } catch {
+    window.alert(state.language === 'ar'
+      ? 'تم الحفظ على هذا الجهاز، لكن تعذرت مزامنته الآن.'
+      : 'Saved on this device, but cloud sync is currently unavailable.');
+  }
   state.selectedCategory = customCategory;
   customActivityForm.reset();
   renderHome();

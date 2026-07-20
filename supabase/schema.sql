@@ -48,3 +48,50 @@ on public.activity_sessions
 for delete
 to authenticated
 using ((select auth.uid()) = user_id);
+
+create table if not exists public.custom_activities (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  name text not null,
+  category text not null,
+  fields jsonb not null default '[]'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, name)
+);
+
+create index if not exists custom_activities_user_updated_idx
+  on public.custom_activities (user_id, updated_at desc);
+
+alter table public.custom_activities enable row level security;
+
+revoke all on table public.custom_activities from anon;
+grant select, insert, update, delete on table public.custom_activities to authenticated;
+
+drop policy if exists "Users can read their own custom activities" on public.custom_activities;
+create policy "Users can read their own custom activities"
+on public.custom_activities
+for select
+to authenticated
+using ((select auth.uid()) = user_id);
+
+drop policy if exists "Users can insert their own custom activities" on public.custom_activities;
+create policy "Users can insert their own custom activities"
+on public.custom_activities
+for insert
+to authenticated
+with check ((select auth.uid()) = user_id);
+
+drop policy if exists "Users can update their own custom activities" on public.custom_activities;
+create policy "Users can update their own custom activities"
+on public.custom_activities
+for update
+to authenticated
+using ((select auth.uid()) = user_id)
+with check ((select auth.uid()) = user_id);
+
+drop policy if exists "Users can delete their own custom activities" on public.custom_activities;
+create policy "Users can delete their own custom activities"
+on public.custom_activities
+for delete
+to authenticated
+using ((select auth.uid()) = user_id);

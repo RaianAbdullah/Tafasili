@@ -29,6 +29,12 @@ import {
   signUpWithSupabase,
 } from '../../lib/authDatabase';
 import {
+  clearCloudCustomActivities,
+  deleteCloudCustomActivity,
+  loadCloudCustomActivities,
+  saveCloudCustomActivity,
+} from '../../lib/customActivityDatabase';
+import {
   clearCloudSessions,
   deleteCloudSession,
   loadCloudSessions,
@@ -78,6 +84,17 @@ const activityGroupChoices = [
   'Life Tracking',
   'Vehicle and Maintenance',
 ];
+const activityGroupCloudKeys: Record<string, string> = {
+  'Sports and Games': 'sports',
+  'Fitness and Movement': 'fitness',
+  'Horse Activities': 'horse',
+  'Study and Work': 'study',
+  'Life Tracking': 'life',
+  'Vehicle and Maintenance': 'vehicle',
+};
+const cloudKeyActivityGroups = Object.fromEntries(
+  Object.entries(activityGroupCloudKeys).map(([group, key]) => [key, group])
+) as Record<string, string>;
 const STUDY_CANDLE_DURATION_SECONDS = 3 * 60 * 60;
 const arabicActivityNames: Record<string, string> = {
   Football: 'كرة القدم',
@@ -567,7 +584,15 @@ const logout = async () => {
 };
   const loadSavedData = async (userId: string | null = null) => {
     let localSessions: Session[] = [];
+    let localActivities = [...defaultActivities];
+    let localTemplates: Record<string, string[]> = {};
+    let localGroups: Record<string, string> = {};
     const sessionsStorageKey = userId ? `sessions:${userId}` : 'sessions';
+    const activitiesStorageKey = userId ? `activities:${userId}` : 'activities';
+    const templatesStorageKey = userId
+      ? `customActivityTemplates:${userId}`
+      : 'customActivityTemplates';
+    const groupsStorageKey = userId ? `customActivityGroups:${userId}` : 'customActivityGroups';
 
     try {
       const scopedSessions = await AsyncStorage.getItem(sessionsStorageKey);
@@ -575,9 +600,15 @@ const logout = async () => {
         ? await AsyncStorage.getItem('sessions')
         : null;
       const savedSessions = scopedSessions ?? legacySessions;
-      const savedActivities = await AsyncStorage.getItem('activities');
-      const savedCustomTemplates = await AsyncStorage.getItem('customActivityTemplates');
-      const savedCustomGroups = await AsyncStorage.getItem('customActivityGroups');
+      const scopedActivities = await AsyncStorage.getItem(activitiesStorageKey);
+      const scopedTemplates = await AsyncStorage.getItem(templatesStorageKey);
+      const scopedGroups = await AsyncStorage.getItem(groupsStorageKey);
+      const savedActivities = scopedActivities
+        ?? (userId ? await AsyncStorage.getItem('activities') : null);
+      const savedCustomTemplates = scopedTemplates
+        ?? (userId ? await AsyncStorage.getItem('customActivityTemplates') : null);
+      const savedCustomGroups = scopedGroups
+        ?? (userId ? await AsyncStorage.getItem('customActivityGroups') : null);
 
       if (savedSessions) {
         const parsedSessions = JSON.parse(savedSessions);
@@ -590,23 +621,26 @@ const logout = async () => {
       if (savedActivities) {
         const savedActivityList = JSON.parse(savedActivities);
         if (Array.isArray(savedActivityList)) {
-          setActivities([...new Set([...defaultActivities, ...savedActivityList])]);
+          localActivities = [...new Set([...defaultActivities, ...savedActivityList])];
         }
       }
+      setActivities(localActivities);
 
       if (savedCustomTemplates) {
         const parsedTemplates = JSON.parse(savedCustomTemplates);
         if (parsedTemplates && typeof parsedTemplates === 'object') {
-          setCustomActivityTemplates(parsedTemplates);
+          localTemplates = parsedTemplates;
         }
       }
+      setCustomActivityTemplates(localTemplates);
 
       if (savedCustomGroups) {
         const parsedGroups = JSON.parse(savedCustomGroups);
         if (parsedGroups && typeof parsedGroups === 'object') {
-          setCustomActivityGroups(parsedGroups);
+          localGroups = parsedGroups;
         }
       }
+      setCustomActivityGroups(localGroups);
 
     } catch {
       alert('Error loading saved data');
@@ -633,6 +667,59 @@ const logout = async () => {
     } catch {
       // Local history remains available when cloud sync is offline or not signed in.
     }
+
+    if (userId) {
+      try {
+        const cloudActivities = await loadCloudCustomActivities();
+        const mergedActivities = new Map<string, { category: string; fields: string[] }>();
+
+        localActivities
+          .filter((activity) => !defaultActivities.includes(activity))
+          .forEach((name) => {
+            mergedActivities.set(name, {
+              category: localGroups[name] ?? 'Life Tracking',
+              fields: localTemplates[name] ?? ['Session title', 'Notes'],
+            });
+          });
+
+        (cloudActivities ?? []).forEach((activity) => {
+          mergedActivities.set(activity.name, {
+            category: cloudKeyActivityGroups[activity.category] ?? activity.category,
+            fields: activity.fields,
+          });
+        });
+
+        const mergedNames = [...mergedActivities.keys()];
+        const mergedTemplates = Object.fromEntries(
+          [...mergedActivities].map(([name, activity]) => [name, activity.fields])
+        );
+        const mergedGroups = Object.fromEntries(
+          [...mergedActivities].map(([name, activity]) => [name, activity.category])
+        );
+        const mergedActivityList = [...defaultActivities, ...mergedNames];
+
+        setActivities(mergedActivityList);
+        setCustomActivityTemplates(mergedTemplates);
+        setCustomActivityGroups(mergedGroups);
+        await Promise.all([
+          AsyncStorage.setItem(activitiesStorageKey, JSON.stringify(mergedActivityList)),
+          AsyncStorage.setItem(templatesStorageKey, JSON.stringify(mergedTemplates)),
+          AsyncStorage.setItem(groupsStorageKey, JSON.stringify(mergedGroups)),
+        ]);
+
+        await Promise.allSettled(
+          [...mergedActivities].map(([name, activity]) =>
+            saveCloudCustomActivity({
+              name,
+              category: activityGroupCloudKeys[activity.category] ?? activity.category,
+              fields: activity.fields,
+            })
+          )
+        );
+      } catch {
+        // Local custom activities remain available until cloud sync returns.
+      }
+    }
   };
 
   const saveSessionsToStorage = async (newSessions: Session[], userId = authUserId) => {
@@ -644,25 +731,31 @@ const logout = async () => {
     }
   };
 
-  const saveActivitiesToStorage = async (newActivities: string[]) => {
+  const saveActivitiesToStorage = async (newActivities: string[], userId = authUserId) => {
     try {
-      await AsyncStorage.setItem('activities', JSON.stringify(newActivities));
+      const key = userId ? `activities:${userId}` : 'activities';
+      await AsyncStorage.setItem(key, JSON.stringify(newActivities));
     } catch {
       alert('Error saving activity list');
     }
   };
 
-  const saveCustomTemplatesToStorage = async (templates: Record<string, string[]>) => {
+  const saveCustomTemplatesToStorage = async (
+    templates: Record<string, string[]>,
+    userId = authUserId
+  ) => {
     try {
-      await AsyncStorage.setItem('customActivityTemplates', JSON.stringify(templates));
+      const key = userId ? `customActivityTemplates:${userId}` : 'customActivityTemplates';
+      await AsyncStorage.setItem(key, JSON.stringify(templates));
     } catch {
       alert('Error saving custom activity fields');
     }
   };
 
-  const saveCustomGroupsToStorage = async (groups: Record<string, string>) => {
+  const saveCustomGroupsToStorage = async (groups: Record<string, string>, userId = authUserId) => {
     try {
-      await AsyncStorage.setItem('customActivityGroups', JSON.stringify(groups));
+      const key = userId ? `customActivityGroups:${userId}` : 'customActivityGroups';
+      await AsyncStorage.setItem(key, JSON.stringify(groups));
     } catch {
       alert('Error saving custom activity category');
     }
@@ -1096,7 +1189,7 @@ const logout = async () => {
     setShowOtherModal(true);
   };
 
-  const addOtherActivity = () => {
+  const addOtherActivity = async () => {
     const cleanName = otherActivityName.trim();
 
     if (cleanName === '') {
@@ -1140,6 +1233,18 @@ const logout = async () => {
     setCustomActivityGroups(newGroups);
     saveCustomGroupsToStorage(newGroups);
 
+    try {
+      await saveCloudCustomActivity({
+        name: cleanName,
+        category: activityGroupCloudKeys[otherActivityCategory] ?? otherActivityCategory,
+        fields: newTemplates[cleanName],
+      });
+    } catch {
+      alert(isArabic
+        ? 'تم الحفظ على هذا الجهاز، لكن تعذرت مزامنته الآن.'
+        : 'Saved on this device, but cloud sync is currently unavailable.');
+    }
+
     setShowOtherModal(false);
     setSelectedActivity(cleanName);
     setStartTime(null);
@@ -1147,7 +1252,7 @@ const logout = async () => {
     resetActivityFields();
   };
 
-  const deleteActivity = (activityName: string) => {
+  const deleteActivity = async (activityName: string) => {
     const newActivities = activities.filter((activity) => activity !== activityName);
     const newTemplates = { ...customActivityTemplates };
     const newGroups = { ...customActivityGroups };
@@ -1160,6 +1265,14 @@ const logout = async () => {
     saveCustomTemplatesToStorage(newTemplates);
     setCustomActivityGroups(newGroups);
     saveCustomGroupsToStorage(newGroups);
+
+    try {
+      await deleteCloudCustomActivity(activityName);
+    } catch {
+      alert(isArabic
+        ? 'تم الحذف من هذا الجهاز، لكن تعذر حذفه من السحابة.'
+        : 'Deleted on this device, but cloud deletion failed.');
+    }
   };
 
   const confirmDeleteActivity = (activityName: string) => {
@@ -1171,7 +1284,7 @@ const logout = async () => {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => deleteActivity(activityName),
+          onPress: () => void deleteActivity(activityName),
         },
       ]
     );
@@ -1186,13 +1299,20 @@ const logout = async () => {
         {
           text: 'Reset',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
             setActivities(defaultActivities);
             saveActivitiesToStorage(defaultActivities);
             setCustomActivityTemplates({});
             saveCustomTemplatesToStorage({});
             setCustomActivityGroups({});
             saveCustomGroupsToStorage({});
+            try {
+              await clearCloudCustomActivities();
+            } catch {
+              alert(isArabic
+                ? 'تمت إعادة الضبط على هذا الجهاز، لكن تعذرت مزامنة الحذف.'
+                : 'Reset on this device, but cloud deletion failed.');
+            }
           },
         },
       ]

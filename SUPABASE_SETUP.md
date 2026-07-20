@@ -15,7 +15,7 @@ Supabase gives Tafasili a real cloud database for accounts and saved history.
 2. Copy the SQL from `supabase/schema.sql`.
 3. Run it.
 
-This creates the `activity_sessions` table and enables Row Level Security so each signed-in user can only access their own sessions.
+This creates the `activity_sessions` and `custom_activities` tables. Row Level Security ensures each signed-in user can only access their own history and custom activities.
 
 ## 3. Add your app keys
 
@@ -40,6 +40,6 @@ Do not put the service-role secret key in the app.
 2. Sign up with an email and password.
 3. Save an activity session.
 4. In Supabase, open Table Editor.
-5. Check `activity_sessions`.
+5. Check both `activity_sessions` and `custom_activities`.
 
 If email confirmation is enabled in Supabase, confirm the email before testing database sync.
