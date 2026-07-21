@@ -191,14 +191,14 @@ a {
 
 .brand-mark {
   display: grid;
-  width: 108px;
-  height: 108px;
+  width: 132px;
+  height: 132px;
   place-items: center;
 }
 
 .brand-mark img {
-  width: 108px;
-  height: 108px;
+  width: 132px;
+  height: 132px;
   object-fit: contain;
 }
 

@@ -4484,8 +4484,8 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   brandLogo: {
-    width: 108,
-    height: 108,
+    width: 132,
+    height: 132,
   },
   languageButton: {
     width: 44,
