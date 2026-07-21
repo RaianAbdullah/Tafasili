@@ -93,7 +93,7 @@ const translations = {
     back: 'Back',
     logout: 'Logout',
     authEyebrow: 'Personal activity tracking',
-    heroTitle: 'Track and save your activity sessions.',
+    heroTitle: 'Your life, Organized.',
     heroCopy:
       'Your Tafasili account securely saves activity history to the cloud, while keeping an offline copy on this device.',
     signIn: 'Sign in',
@@ -194,7 +194,7 @@ const translations = {
     back: 'رجوع',
     logout: 'تسجيل الخروج',
     authEyebrow: 'تتبع النشاطات الشخصية',
-    heroTitle: 'تتبع واحفظ جلسات نشاطك.',
+    heroTitle: 'كل تفاصيلك في مكان واحد',
     heroCopy:
       'يحفظ حساب تفاصيلي سجل نشاطاتك بأمان في السحابة، مع نسخة محلية على هذا الجهاز.',
     signIn: 'تسجيل الدخول',

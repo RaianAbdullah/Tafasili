@@ -3001,7 +3001,7 @@ const getGroupedActivities = () => {
           </TouchableOpacity>
         </View>
         <Text style={[styles.loginTagline, isArabic && styles.rtlText]}>
-          {isArabic ? 'تتبع واحفظ تفاصيل حياتك ونشاطاتك.' : 'Track and save your life and activity details.'}
+          {isArabic ? 'كل تفاصيلك في مكان واحد' : 'Your life, Organized.'}
         </Text>
         <Text style={[styles.loginSubtitle, isArabic && styles.rtlText]}>
           {isSignupMode
@@ -5249,6 +5249,7 @@ loginHint: {
 },
 authModeRow: {
   flexDirection: 'row',
+  width: '100%',
   gap: 10,
   marginBottom: 18,
 },
