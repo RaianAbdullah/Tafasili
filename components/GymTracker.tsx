@@ -50,6 +50,7 @@ type Props = {
 export default function GymTracker(props: Props) {
   const [restSeconds, setRestSeconds] = useState(0);
   const [isRestTimerRunning, setIsRestTimerRunning] = useState(false);
+  const [isExerciseSuggestionsVisible, setIsExerciseSuggestionsVisible] = useState(false);
 
   useEffect(() => {
     if (!isRestTimerRunning) {
@@ -62,6 +63,12 @@ export default function GymTracker(props: Props) {
 
     return () => clearInterval(intervalId);
   }, [isRestTimerRunning]);
+
+  useEffect(() => {
+    if (props.selectedActivity !== 'Gym') {
+      setIsExerciseSuggestionsVisible(false);
+    }
+  }, [props.selectedActivity]);
 
   const formatRestTime = () => {
     const minutes = Math.floor(restSeconds / 60);
@@ -90,6 +97,12 @@ export default function GymTracker(props: Props) {
   };
 
   const bestGymSet = getBestGymSet();
+  const exerciseSearch = props.gymExerciseName.trim().toLowerCase();
+  const filteredExerciseOptions = exerciseSearch
+    ? props.gymExerciseOptions.filter((exerciseName) =>
+        exerciseName.toLowerCase().includes(exerciseSearch)
+      )
+    : [];
 
   if (props.selectedActivity !== 'Gym') {
     return null;
@@ -147,6 +160,7 @@ export default function GymTracker(props: Props) {
     props.setGymSetReps('');
     props.setGymSetWeight('');
     props.setCurrentGymSets([]);
+    setIsExerciseSuggestionsVisible(false);
   };
 
   const deleteGymExercise = (exerciseId: number) => {
@@ -195,30 +209,35 @@ export default function GymTracker(props: Props) {
 
       <Text style={styles.detailsSubtitle}>{props.isArabic ? 'التمرين الحالي' : 'Current Exercise'}</Text>
 
-      {props.gymExerciseOptions.length > 0 && (
-        <View style={styles.exerciseOptionsBox}>
-          <Text style={styles.exerciseOptionsTitle}>{props.isArabic ? 'خيارات التمارين المحفوظة' : 'Saved exercise options'}</Text>
-          <View style={styles.exerciseOptionsRow}>
-            {props.gymExerciseOptions.map((exerciseName) => (
-              <TouchableOpacity
-                key={exerciseName.toLowerCase()}
-                style={styles.exerciseOptionButton}
-                onPress={() => props.setGymExerciseName(exerciseName)}
-              >
-                <Text style={styles.exerciseOptionText}>{exerciseName}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-      )}
-
       <TextInput
         style={styles.input}
         placeholder={props.isArabic ? 'اسم التمرين' : 'Exercise name, example: Bench Press'}
         placeholderTextColor="#050505"
         value={props.gymExerciseName}
-        onChangeText={props.setGymExerciseName}
+        onChangeText={(value) => {
+          props.setGymExerciseName(value);
+          setIsExerciseSuggestionsVisible(value.trim().length > 0);
+        }}
+        onFocus={() => setIsExerciseSuggestionsVisible(props.gymExerciseName.trim().length > 0)}
+        onBlur={() => setTimeout(() => setIsExerciseSuggestionsVisible(false), 120)}
       />
+
+      {isExerciseSuggestionsVisible && filteredExerciseOptions.length > 0 && (
+        <View style={styles.exerciseOptionsBox}>
+          {filteredExerciseOptions.slice(0, 6).map((exerciseName) => (
+            <TouchableOpacity
+              key={exerciseName.toLowerCase()}
+              style={styles.exerciseOptionButton}
+              onPress={() => {
+                props.setGymExerciseName(exerciseName);
+                setIsExerciseSuggestionsVisible(false);
+              }}
+            >
+              <Text style={styles.exerciseOptionText}>{exerciseName}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       <View style={styles.scoreRow}>
         <TextInput
@@ -410,27 +429,21 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   exerciseOptionsBox: {
+    marginTop: -12,
     marginBottom: 12,
-  },
-  exerciseOptionsTitle: {
-    color: '#050505',
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  exerciseOptionsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  exerciseOptionButton: {
-    minHeight: 40,
-    justifyContent: 'center',
-    paddingHorizontal: 12,
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#E7E9EE',
     borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    backgroundColor: '#FFFFFF',
+  },
+  exerciseOptionButton: {
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E7E9EE',
+    backgroundColor: '#FFFFFF',
   },
   exerciseOptionText: {
     color: '#050505',

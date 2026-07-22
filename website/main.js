@@ -2118,14 +2118,12 @@ function getFieldsForActivity(activity) {
         ${inputField(gymText('customWorkout'), 'gymCustomWorkout', gymText('customWorkoutPlaceholder'))}
 
         <h2 class="gym-section-title">${gymText('currentExercise')}</h2>
-        <div class="gym-exercise-options">
-          <strong>${gymText('savedExerciseOptions')}</strong>
-          <div class="gym-option-list" id="gym-exercise-option-list"></div>
-        </div>
-        <label>
+        <label class="gym-exercise-name-field">
           ${gymText('exerciseName')}
-          <input name="gymExerciseName" type="text" list="gym-exercise-name-options" placeholder="${gymText('exercisePlaceholder')}" />
-          <datalist id="gym-exercise-name-options"></datalist>
+          <input name="gymExerciseName" type="text" autocomplete="off" placeholder="${gymText('exercisePlaceholder')}" />
+          <div class="gym-exercise-options collapsed" id="gym-exercise-options">
+            <div class="gym-option-list" id="gym-exercise-option-list"></div>
+          </div>
         </label>
 
         <div class="gym-set-row">
@@ -3010,6 +3008,14 @@ function bindGymWorkoutBuilder() {
   document.querySelector('#gym-rest-start')?.addEventListener('click', startGymRestTimer);
   document.querySelector('#gym-rest-pause')?.addEventListener('click', pauseGymRestTimer);
   document.querySelector('#gym-rest-reset')?.addEventListener('click', resetGymRestTimer);
+  const exerciseInput = document.querySelector('[name="gymExerciseName"]');
+  exerciseInput?.addEventListener('input', renderGymExerciseSuggestions);
+  exerciseInput?.addEventListener('focus', renderGymExerciseSuggestions);
+  exerciseInput?.addEventListener('blur', () => {
+    window.setTimeout(() => {
+      document.querySelector('#gym-exercise-options')?.classList.add('collapsed');
+    }, 120);
+  });
 }
 
 function formatGymRestTime() {
@@ -3154,15 +3160,41 @@ function getGymExerciseOptions() {
   return [...names.values()].sort((a, b) => a.localeCompare(b));
 }
 
+function renderGymExerciseSuggestions() {
+  const exerciseInput = sessionForm.querySelector('[name="gymExerciseName"]');
+  const exerciseOptionsBox = document.querySelector('#gym-exercise-options');
+  const exerciseOptionList = document.querySelector('#gym-exercise-option-list');
+
+  if (!exerciseInput || !exerciseOptionsBox || !exerciseOptionList) return;
+
+  const search = exerciseInput.value.trim().toLowerCase();
+  const isTyping = document.activeElement === exerciseInput && search.length > 0;
+  const matchingOptions = isTyping
+    ? getGymExerciseOptions()
+        .filter((exerciseName) => exerciseName.toLowerCase().includes(search))
+        .slice(0, 6)
+    : [];
+
+  exerciseOptionList.innerHTML = matchingOptions
+    .map((exerciseName) => `<button class="gym-option-button" type="button" data-gym-exercise-option="${escapeHtml(exerciseName)}">${escapeHtml(exerciseName)}</button>`)
+    .join('');
+  exerciseOptionsBox.classList.toggle('collapsed', matchingOptions.length === 0);
+
+  exerciseOptionList.querySelectorAll('[data-gym-exercise-option]').forEach((button) => {
+    button.addEventListener('click', () => {
+      exerciseInput.value = button.dataset.gymExerciseOption;
+      exerciseOptionsBox.classList.add('collapsed');
+      exerciseInput.blur();
+    });
+  });
+}
+
 function renderGymWorkoutBuilder() {
   const selectedDay = document.querySelector('#gym-workout-day')?.value || '';
   const restTimer = document.querySelector('#gym-rest-time');
   const currentSetList = document.querySelector('#gym-current-set-list');
   const exerciseList = document.querySelector('#gym-exercise-list');
   const progressSummary = document.querySelector('#gym-progress-summary');
-  const exerciseOptionList = document.querySelector('#gym-exercise-option-list');
-  const exerciseDatalist = document.querySelector('#gym-exercise-name-options');
-  const exerciseOptions = getGymExerciseOptions();
 
   document.querySelectorAll('[data-gym-day]').forEach((button) => {
     button.classList.toggle('selected', button.dataset.gymDay === selectedDay);
@@ -3172,23 +3204,7 @@ function renderGymWorkoutBuilder() {
     restTimer.textContent = formatGymRestTime();
   }
 
-  if (exerciseDatalist) {
-    exerciseDatalist.innerHTML = exerciseOptions
-      .map((exerciseName) => `<option value="${escapeHtml(exerciseName)}"></option>`)
-      .join('');
-  }
-
-  if (exerciseOptionList) {
-    exerciseOptionList.innerHTML = exerciseOptions.length
-      ? exerciseOptions.map((exerciseName) => `<button class="gym-option-button" type="button" data-gym-exercise-option="${escapeHtml(exerciseName)}">${escapeHtml(exerciseName)}</button>`).join('')
-      : `<small>${gymText('noExercises')}</small>`;
-    exerciseOptionList.querySelectorAll('[data-gym-exercise-option]').forEach((button) => {
-      button.addEventListener('click', () => {
-        const exerciseInput = sessionForm.querySelector('[name="gymExerciseName"]');
-        if (exerciseInput) exerciseInput.value = button.dataset.gymExerciseOption;
-      });
-    });
-  }
+  renderGymExerciseSuggestions();
 
   if (currentSetList) {
     currentSetList.innerHTML =
